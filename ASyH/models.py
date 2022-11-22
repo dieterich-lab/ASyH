@@ -10,7 +10,10 @@ import sdv
 class TVAEModel(Model):
 
     def __init__(self, data=None):
-        sdv_model = sdv.tabular.TVAE(field_types=data.metadata())
+        if data:
+            sdv_model = sdv.tabular.TVAE(field_types=data.metadata())
+        else:
+            sdv_model = sdv.tabular.TVAE()
         Model.__init__(self, 'TVAE', sdv_model, data)
 
     def adapt(self):
@@ -21,7 +24,10 @@ class TVAEModel(Model):
 class CTGANModel(Model):
 
     def __init__(self, data=None):
-        sdv_model = sdv.tabular.CTGAN(field_types=data.metadata())
+        if data:
+            sdv_model = sdv.tabular.CTGAN(field_types=data.metadata())
+        else:
+            sdv_model = sdv.tabular.CTGAN()
         Model.__init__(self, 'CTGAN', sdv_model, data)
 
     def adapt(self):
@@ -31,7 +37,10 @@ class CTGANModel(Model):
 class CopulaGANModel(Model):
 
     def __init__(self, data=None):
-        sdv_model = sdv.tabular.CopulaGAN(field_types=data.metadata())
+        if data:
+            sdv_model = sdv.tabular.CopulaGAN(field_types=data.metadata())
+        else:
+            sdv_model = sdv.tabular.CopulaGAN()
         Model.__init__(self, 'CopulaGAN', sdv_model, data)
 
     def adapt(self):
@@ -41,7 +50,10 @@ class CopulaGANModel(Model):
 class GaussianCopulaModel(Model):
 
     def __init__(self, data=None):
-        sdv_model = sdv.tabular.GaussianCopula(field_types=data.metadata())
+        if data:
+            sdv_model = sdv.tabular.GaussianCopula(field_types=data.metadata())
+        else:
+            sdv_model = sdv.tabular.GaussianCopula()
         Model.__init__(self, 'GaussianCopula', sdv_model, data)
 
     def adapt(self):
