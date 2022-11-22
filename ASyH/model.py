@@ -22,10 +22,15 @@ class Model:
     def __init__(self, model_type=None, sdv_model=None, data=None):
         self._model_type = model_type
         self._sdv_model = sdv_model
-        self._training_data = data.data
-        self._metadata = data.metadata
+        if data:
+            self._training_data = data.data
+            self._metadata = data.metadata
+        else:
+            self._training_data = None
+            self._metadata = None
 
     def _train(self, data=None):
+        assert(self._training_data or data)
         if data is None:
             self.sdv_model.fit(self._training_data)
         else:
