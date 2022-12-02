@@ -6,35 +6,23 @@ from ASyH.models import CopulaGANModel, CTGANModel, GaussianCopulaModel, TVAEMod
 
 class CopulaGANPipeline(Pipeline):
 
-    def _pipeline(self):
-        model = CopulaGANModel(data=self._input_data)
-        synthesized_data = model.synthesize()
-        score = self._scoring_fn(self._input_data, synthesized_data)
-        return score
+    def __init__(self, input_data):
+        Pipeline.__init__(CopulaGANModel(data=input_data), input_data)
 
 
 class CTGANPipeline(Pipeline):
 
-    def _pipeline(self):
-        model = CTGANModel(data=self._input_data)
-        synthesized_data = model.synthesize()
-        score = self._scoring_fn(self._input_data, synthesized_data)
-        return score
+    def __init__(self, input_data):
+        Pipeline.__init__(CTGANModel(data=input_data), input_data)
 
 
 class GaussianCopulaPipeline(Pipeline):
 
-    def _pipeline(self):
-        model = CTGANModel(data=self._input_data)
-        synthesized_data = model.synthesize()
-        score = self._scoring_fn(self._input_data, synthesized_data)
-        return score
+    def __init__(self, input_data):
+        Pipeline.__init__(GaussianCopulaModel(data=input_data), input_data)
 
 
 class TVAEPipeline(Pipeline):
 
-    def _pipeline(self):
-        model = TVAEModel(data=self._input_data)
-        synthesized_data = model.synthesize()
-        score = self._scoring_fn(self._input_data, synthesized_data)
-        return score
+    def __init__(self, input_data):
+        Pipeline.__init__(TVAEModel(data=input_data), input_data)
