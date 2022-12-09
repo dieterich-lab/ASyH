@@ -4,6 +4,7 @@
 
 from ASyH.abstract_pipeline import AbstractPipeline
 from ASyH.hook import ScoringHook
+import ASyH.data
 
 
 class Pipeline(AbstractPipeline):
@@ -19,16 +20,12 @@ class Pipeline(AbstractPipeline):
         self._input_data = input_data
 
     def _pipeline(self):
-        synthetic_data = self._model.synthesize()
+        synthetic_data = ASyH.data.Data(data=self._model.synthesize())
         return self._scoring_hook.execute(self._input_data, synthetic_data)
-
-    async def p_run(self):
-        '''Abstract method for ASyH pipeline definitions'''
-        self._pipeline()
 
     def run(self):
         '''Start the pipeline'''
-        self._pipeline()
+        return self._pipeline()
 
 
 AbstractPipeline.register(Pipeline)
