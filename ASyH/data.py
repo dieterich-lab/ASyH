@@ -33,11 +33,13 @@ class Data:
         x = re.compile(".*Excel.*")
         c = re.compile(".*CSV.*")
         if (x.match(filetype)):
-            self._data = pandas.read_excel(input_file)
+            data = pandas.read_excel(input_file)
         elif(c.match(filetype)):
-            self._data = pandas.read_csv(input_file)
+            data = pandas.read_csv(input_file)
         else:
-            error("Cannot determine input file type: ")
+            raise DataError("Cannot determine input file type: ") from LookupError
+        # the data contains a spurious index column when saved from pandas!
+        self._data = data.drop(data.columns[0], axis=1)
 
     def set_metadata(self, metadata=None):
         self._metadata = metadata
