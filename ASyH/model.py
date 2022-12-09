@@ -3,7 +3,9 @@
 # ToDos:
 #   read() and save()
 
-from ASyH import utils
+from datetime import datetime
+import os.path
+# from ASyH import utils
 
 
 class Model:
@@ -25,23 +27,39 @@ class Model:
         if data:
             self._training_data = data.data
             self._metadata = data.metadata
+            self._input_data_size = data.data.shape[0]
         else:
             self._training_data = None
             self._metadata = None
 
     def _train(self, data=None):
-        assert(self._training_data or data)
+        assert(self._training_data is not None or data is not None)
         if data is None:
             self.sdv_model.fit(self._training_data)
         else:
             self.sdv_model.fit(data)
+            self._input_data_size = data.shape[0]
         self._trained = True
 
-    def save(self):
-        utils.ToDo()
+    def save(self, filename=None):
+        '''Save the SDV model to pkl.'''
+        if not self._sdv_model:
+            return
+        if not filename:  # create a filename from model type and date/time
+            filename = self._model_type \
+                + str(datetime.now().isoformat(timespec='auto'))
+        if not filename.endswith('.pkl'):
+            filename = filename + '.pkl'
+        self._sdv_model.save(filename)
 
     def read(self, input_filename):
-        utils.ToDo()
+        '''Read the SDV model from pkl.'''
+        # does filename exist?
+        if not os.path.exists(input_filename):
+            Warning('Model input file not found!')
+            return
+        if self._sdv_model:
+            self._sdv_model.read(input_filename)
 
     def synthesize(self, sample_size=-1):
         if not self._trained:
