@@ -1,7 +1,7 @@
 # ASyH's simple metadata inference
 
 import pathlib
-import utils
+# import utils
 import json
 
 
@@ -29,6 +29,12 @@ class Metadata:
         # (later: +annotating the possible SDV type)
         with open(outfilename, 'w', encoding='utf-8') as f:
             json.dump(self.metadata, f)
+
+    def variables_by_type(self, type_string):
+        field_types = self.metadata['tables']['data']['fields']
+        return [key  # the key, i.e. variable name
+                for key, typeinfo in field_types.items()
+                if typeinfo['type'] == type_string]
 
     def __init__(self, data=None):
         # for now just use the dataFrame's dtypes:
