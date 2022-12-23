@@ -57,8 +57,8 @@ class GaussianCopulaModel(Model):
             sdv_model = sdv.tabular.GaussianCopula(field_types=data.metadata().matadata)
         else:
             sdv_model = sdv.tabular.GaussianCopula()
-       Model.__init__(self, model_type='GaussianCopula',
-                      sdv_model=sdv_model, data=data)
+        Model.__init__(self, model_type='GaussianCopula',
+                       sdv_model=sdv_model, data=data)
 
     def adapt(self):
         '''Method to adapt the Gaussian Copula sdv model internals to data'''
