@@ -1,64 +1,105 @@
-# ASyH Concrete Model-derived classes
+'''ASyH Concrete Model-Derived Classes'''
 #
 # ToDos:
 #   Implement adapt() for models to tune the model internals to the data.
 
-from ASyH.model import Model
 import sdv
+from ASyH.model import Model
 
 
 class TVAEModel(Model):
+    '''Specific ASyH Model for SDV\'s TVAE model.'''
 
     def __init__(self, data=None):
-        if data:
-            sdv_model = sdv.tabular.TVAE(field_types=data.metadata().metadata)
-        else:
-            sdv_model = sdv.tabular.TVAE()
-        Model.__init__(self, model_type='TVAE',
-                       sdv_model=sdv_model, data=data)
 
-    def adapt(self):
-        '''Method to adapt the TVAE sdv model internals to data'''
-        # for now, just pass
+        def sdv_model_constructor(arg_dict):
+            return sdv.tabular.TVAE(**arg_dict)
+
+        Model.__init__(self, model_type='TVAE',
+                       sdv_model_constructor=sdv_model_constructor,
+                       data=data)
+
+    def adapted_arguments(self, data):
+        '''Create SDV model specific argument dict to pass to the constructor.
+        This method is meant to adapt the TVAE sdv model internals to the input
+        data.
+        The method returns a dict of keyword arguments to be passed to the
+        specific SDV model constructor with the ** operator:
+        sdv_constructor(**adapt_arguments(data)) => adapted SDV model'''
+
+        data_size = len(data.data.columns)
+        dim = 2*data_size
+        hidden_layer_dims = (dim, dim)
+        return {'field_types': data.metadata().metadata,
+                'compress_dims': hidden_layer_dims,
+                'decompress_dims': hidden_layer_dims,
+                'embedding_dim': dim}
 
 
 class CTGANModel(Model):
+    '''Specific ASyH Model for SDV\'s CTGAN model.'''
 
     def __init__(self, data=None):
-        if data:
-            sdv_model = sdv.tabular.CTGAN(field_types=data.metadata().metadata)
-        else:
-            sdv_model = sdv.tabular.CTGAN()
-        Model.__init__(self, model_type='CTGAN',
-                       sdv_model=sdv_model, data=data)
 
-    def adapt(self):
-        '''Method to adapt the CTGAN sdv model internals to data'''
+        def sdv_model_constructor(arg_dict):
+            return sdv.tabular.CTGAN(**arg_dict)
+
+        Model.__init__(self, model_type='CTGAN',
+                       sdv_model_constructor=sdv_model_constructor,
+                       data=data)
+
+    def adapted_arguments(self, data):
+        '''Create SDV model specific argument dict to pass to the constructor.
+        This method is meant to adapt the CTGAN sdv model internals to the
+        input data.
+        The method returns a dict of keyword arguments to be passed to the
+        specific SDV model constructor with the ** operator:
+        sdv_constructor(**adapt_arguments(data)) => adapted SDV model'''
+        data_size = len(data.data.columns)
+        dim = 4*data_size
+        hidden_layer_dims = (dim, dim)
+        return {'field_types': data.metadata().metadata,
+                'generator_dims': hidden_layer_dims,
+                'discriminator_dims': hidden_layer_dims}
 
 
 class CopulaGANModel(Model):
+    '''Specific ASyH Model for SDV\'s CopulaGAN model.'''
 
     def __init__(self, data=None):
-        if data:
-            sdv_model = sdv.tabular.CopulaGAN(field_types=data.metadata().metadata)
-        else:
-            sdv_model = sdv.tabular.CopulaGAN()
-        Model.__init__(self, model_type='CopulaGAN',
-                       sdv_model=sdv_model, data=data)
+        def sdv_model_constructor(arg_dict):
+            sdv.tabular.CopulaGAN(**arg_dict)
 
-    def adapt(self):
-        '''Method to adapt the CopulaGAN sdv model internals to data'''
+        Model.__init__(self, model_type='CopulaGAN',
+                       sdv_model_constructor=sdv_model_constructor,
+                       data=data)
+
+    def adapted_arguments(self, data):
+        '''Create SDV model specific argument dict to pass to the constructor.
+        This method is meant to adapt the CopulaGAN sdv model internals to the
+        input data.
+        The method returns a dict of keyword arguments to be passed to the
+        specific SDV model constructor with the ** operator:
+        sdv_constructor(**adapt_arguments(data)) => adapted SDV model'''
+        data_size = len(data.data.columns)
+        dim = 4*data_size
+        hidden_layer_dims = (dim, dim)
+        return {'field_types': data.metadata().metadata,
+                'generator_dims': hidden_layer_dims,
+                'discriminator_dims': hidden_layer_dims}
 
 
 class GaussianCopulaModel(Model):
+    '''Specific ASyH Model for SDV\'s GaussianCopula model.'''
 
     def __init__(self, data=None):
-        if data:
-            sdv_model = sdv.tabular.GaussianCopula(field_types=data.metadata().matadata)
-        else:
-            sdv_model = sdv.tabular.GaussianCopula()
-        Model.__init__(self, model_type='GaussianCopula',
-                       sdv_model=sdv_model, data=data)
+        def sdv_model_constructor(arg_dict):
+            sdv.tabular.GaussianCopula(**arg_dict)
 
-    def adapt(self):
+        Model.__init__(self, model_type='GaussianCopula',
+                       sdv_model_constructor=sdv_model_constructor,
+                       data=data)
+
+    def adapt_arguments(self, data):
         '''Method to adapt the Gaussian Copula sdv model internals to data'''
+        return {'field_types': data.metadata().metadata}
