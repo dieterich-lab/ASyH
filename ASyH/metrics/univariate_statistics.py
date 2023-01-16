@@ -8,7 +8,7 @@ def kstest(real_data, synthetic_data):
     '''Calculate p-values for all numerical variables in input data.'''
     # for each continuous variable:
     numerical_variables = \
-        real_data.metadata().variables_by_type("numerical")
+        real_data.metadata.variables_by_type("numerical")
     return [
         scipy.stats.kstest(
             numpy.array(real_data.data.loc[:, col].values),
@@ -20,7 +20,7 @@ def kstest(real_data, synthetic_data):
 def cstest(real_data, synthetic_data):
     '''Chi-square test metric.'''
     categorical_variables = \
-        real_data.metadata().variables_by_type("categorical")
+        real_data.metadata.variables_by_type("categorical")
 
     r_frequencies = {
         var:

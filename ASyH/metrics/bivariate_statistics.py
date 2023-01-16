@@ -33,7 +33,7 @@ def comparison(real_data, synthetic_data, calculating_fn, comparison_fn):
                        corresponding result of calculating_fn on synthetic data.
     '''
     returnval = {}
-    variables = real_data.metadata().variables_by_type("numerical")
+    variables = real_data.metadata.variables_by_type("numerical")
     if len(variables) > 1:
         real_vals = pairwise(calculating_fn, real_data.data, variables)
         synth_vals = pairwise(calculating_fn, synthetic_data.data, variables)

@@ -30,7 +30,7 @@ class TVAEModel(Model):
         data_size = len(data.data.columns)
         dim = 2*data_size
         hidden_layer_dims = (dim, dim)
-        return {'field_types': data.metadata().metadata,
+        return {'field_types': data.metadata.metadata,
                 'compress_dims': hidden_layer_dims,
                 'decompress_dims': hidden_layer_dims,
                 'embedding_dim': dim}
@@ -58,7 +58,7 @@ class CTGANModel(Model):
         data_size = len(data.data.columns)
         dim = 4*data_size
         hidden_layer_dims = (dim, dim)
-        return {'field_types': data.metadata().metadata,
+        return {'field_types': data.metadata.metadata,
                 'generator_dims': hidden_layer_dims,
                 'discriminator_dims': hidden_layer_dims}
 
@@ -84,7 +84,7 @@ class CopulaGANModel(Model):
         data_size = len(data.data.columns)
         dim = 4*data_size
         hidden_layer_dims = (dim, dim)
-        return {'field_types': data.metadata().metadata,
+        return {'field_types': data.metadata.metadata,
                 'generator_dims': hidden_layer_dims,
                 'discriminator_dims': hidden_layer_dims}
 
@@ -102,4 +102,4 @@ class GaussianCopulaModel(Model):
 
     def adapt_arguments(self, data):
         '''Method to adapt the Gaussian Copula sdv model internals to data'''
-        return {'field_types': data.metadata().metadata}
+        return {'field_types': data.metadata.metadata}

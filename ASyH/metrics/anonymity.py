@@ -79,11 +79,11 @@ def maximum_cosine_similarity(orig_data, synth_data):
     of inner product to arrays of categorical values.
     '''
     # divide datasets into numerical and categorical tables:
-    numerical_vars = orig_data.metadata().variables_by_type("numerical")
+    numerical_vars = orig_data.metadata.variables_by_type("numerical")
     numerical_orig = numpy.array(orig_data.data[numerical_vars])
     numerical_synt = numpy.array(synth_data.data[numerical_vars])
 
-    categorical_vars = orig_data.metadata().variables_by_type("categorical")
+    categorical_vars = orig_data.metadata.variables_by_type("categorical")
     categorical_orig = numpy.array(orig_data.data[categorical_vars])
     categorical_synt = numpy.array(synth_data.data[categorical_vars])
 
