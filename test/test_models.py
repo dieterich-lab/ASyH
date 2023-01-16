@@ -1,108 +1,113 @@
-import unittest
+from os.path import dirname, join
+import pytest
 
 import ASyH.models
 import ASyH.data
 
 
-class TestASyHModel(unittest.TestCase):
-
-    def setUp(self):
-        # a reduced dataset derived from Kaggle: Sirio-Libanes Covid data
-        self.testdata = ASyH.data.Data()
-        self.testdata.read("testdata.csv")
-
-    def test_construct_TVAEModel(self):
-        '''Testing initialization of the TVAE model'''
-        m = ASyH.models.TVAEModel()
-        self.assertEqual(m.model_type, 'TVAE')
-        # private state:
-        self.assertFalse(m._trained)
-        self.assertFalse(m._training_data)
-        self.assertFalse(m._metadata)
-
-    def test_train_synthesize_TVAEModel(self):
-        '''Testing training and synthesis with TVAEModel.  Since the training
-        process takes a long time, training and synthesis are combined into one
-        test.
-        '''
-        m = ASyH.models.TVAEModel()
-        # without specifying any training data in ctor or _train(), there should
-        # be an AssertError in _train():
-        with self.assertRaises(AssertionError):
-            m._train()
-        m._train(self.testdata)
-        self.assertTrue(m._trained)
-        sample = m.synthesize()
-
-    def test_construct_CTGANModel(self):
-        '''Testing initialization of the CTGAN model'''
-        m = ASyH.models.CTGANModel()
-        self.assertEqual(m.model_type, 'CTGAN')
-        # private state:
-        self.assertFalse(m._trained)
-        self.assertFalse(m._training_data)
-        self.assertFalse(m._metadata)
-
-    def test_train_synthesize_CTGANModel(self):
-        '''Testing training and synthesis with CTGANModel.  Since the training
-        process takes a long time, training and synthesis are combined into one
-        test.
-        '''
-        m = ASyH.models.CTGANModel()
-        # without specifying any training data in ctor or _train(), there should
-        # be an AssertError in _train():
-        with self.assertRaises(AssertionError):
-            m._train()
-        m._train(self.testdata)
-        self.assertTrue(m._trained)
-        sample = m.synthesize()
-
-    def test_construct_CopulaGANModel(self):
-        '''Testing initialization of the CopulaGAN model'''
-        m = ASyH.models.CopulaGANModel()
-        self.assertEqual(m.model_type, 'CopulaGAN')
-        # private state:
-        self.assertFalse(m._trained)
-        self.assertFalse(m._training_data)
-        self.assertFalse(m._metadata)
-
-    def test_train_synthesize_CopulaGANModel(self):
-        '''Testing training and synthesis with CopulaGANModel.  Since the training
-        process takes a long time, training and synthesis are combined into one
-        test.
-        '''
-        m = ASyH.models.TVAEModel()
-        # without specifying any training data in ctor or _train(), there should
-        # be an AssertError in _train():
-        with self.assertRaises(AssertionError):
-            m._train()
-        m._train(self.testdata)
-        self.assertTrue(m._trained)
-        sample = m.synthesize()
-
-    def test_construct_GaussianCopulaModel(self):
-        '''Testing initialization of the GaussianCopula model'''
-        m = ASyH.models.GaussianCopulaModel()
-        self.assertEqual(m.model_type, 'GaussianCopula')
-        # private state:
-        self.assertFalse(m._trained)
-        self.assertFalse(m._training_data)
-        self.assertFalse(m._metadata)
-
-    def test_train_synthesize_GaussianCopulaModel(self):
-        '''Testing training and synthesis with GaussianCopulaModel.  Since the training
-        process takes a long time, training and synthesis are combined into one
-        test.
-        '''
-        m = ASyH.models.GaussianCopulaModel()
-        # without specifying any training data in ctor or _train(), there should
-        # be an AssertError in _train():
-        with self.assertRaises(AssertionError):
-            m._train()
-        m._train(self.testdata)
-        self.assertTrue(m._trained)
-        sample = m.synthesize()
+@pytest.fixture
+def input_data():
+    input_file = join(dirname(__file__), 'testdata.csv')
+    data = ASyH.data.Data()
+    data.read(input_file)
+    yield data
 
 
-if __name__ == '__main__':
-    unittest.main()
+def test_construct_tvae_model():
+    """Testing initialization of the TVAE model"""
+    m = ASyH.models.TVAEModel()
+    assert m.model_type == 'TVAE'
+    # private state:
+    assert m._trained is False
+    assert m._training_data is None
+    assert m._metadata is None
+
+
+def test_train_synthesize_tvae_model(input_data):
+    """Testing training and synthesis with TVAEModel.  Since the training
+    process takes a long time, training and synthesis are combined into one
+    test.
+    """
+    m = ASyH.models.TVAEModel()
+    # without specifying any training data in ctor or _train(), there should
+    # be an AssertError in _train():
+    with pytest.raises(AssertionError):
+        m._train()
+    m._train(input_data)
+    assert m._trained
+    m.synthesize()
+
+
+def test_construct_ctgan_model():
+    """Testing initialization of the CTGAN model"""
+    m = ASyH.models.CTGANModel()
+    assert m.model_type == 'CTGAN'
+    # private state:
+    assert m._trained is False
+    assert m._training_data is None
+    assert m._metadata is None
+
+
+def test_train_synthesize_ctgan_model(input_data):
+    """Testing training and synthesis with CTGANModel.  Since the training
+    process takes a long time, training and synthesis are combined into one
+    test.
+    """
+    m = ASyH.models.CTGANModel()
+    # without specifying any training data in ctor or _train(), there should
+    # be an AssertError in _train():
+    with pytest.raises(AssertionError):
+        m._train()
+    m._train(input_data)
+    assert m._trained
+    m.synthesize()
+
+
+def test_construct_copula_gan_model():
+    '''Testing initialization of the CopulaGAN model'''
+    m = ASyH.models.CopulaGANModel()
+    assert m.model_type == 'CopulaGAN'
+    # private state:
+    assert m._trained is False
+    assert m._training_data is None
+    assert m._metadata is None
+
+
+def test_train_synthesize_copula_gan_model(input_data):
+    """Testing training and synthesis with CopulaGANModel.  Since the training
+    process takes a long time, training and synthesis are combined into one
+    test.
+    """
+    m = ASyH.models.TVAEModel()
+    # without specifying any training data in ctor or _train(), there should
+    # be an AssertError in _train():
+    with pytest.raises(AssertionError):
+        m._train()
+    m._train(input_data)
+    assert m._trained
+    m.synthesize()
+
+
+def test_construct_gaussian_copula_model():
+    """Testing initialization of the GaussianCopula model"""
+    m = ASyH.models.GaussianCopulaModel()
+    assert m.model_type == 'GaussianCopula'
+    # private state:
+    assert m._trained is False
+    assert m._training_data is None
+    assert m._metadata is None
+
+
+def test_train_synthesize_gaussian_copula_model(input_data):
+    """Testing training and synthesis with GaussianCopulaModel.  Since the training
+    process takes a long time, training and synthesis are combined into one
+    test.
+    """
+    m = ASyH.models.GaussianCopulaModel()
+    # without specifying any training data in ctor or _train(), there should
+    # be an AssertError in _train():
+    with pytest.raises(AssertionError):
+        m._train()
+    m._train(input_data)
+    assert m._trained
+    m.synthesize()

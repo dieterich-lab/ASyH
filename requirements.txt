@@ -1,1 +1,2 @@
 sdv
+python-magic
