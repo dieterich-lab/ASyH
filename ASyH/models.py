@@ -30,10 +30,14 @@ class TVAEModel(Model):
         data_size = len(data.data.columns)
         dim = 2*data_size
         hidden_layer_dims = (dim, dim)
-        return {'field_types': data.metadata.metadata,
+        return {'field_types': _get_field_types_from_data(data),
                 'compress_dims': hidden_layer_dims,
                 'decompress_dims': hidden_layer_dims,
                 'embedding_dim': dim}
+
+
+def _get_field_types_from_data(data):
+    return None if data.metadata is None else data.metadata.metadata
 
 
 class CTGANModel(Model):
@@ -58,7 +62,7 @@ class CTGANModel(Model):
         data_size = len(data.data.columns)
         dim = 4*data_size
         hidden_layer_dims = (dim, dim)
-        return {'field_types': data.metadata.metadata,
+        return {'field_types': _get_field_types_from_data(data),
                 'generator_dim': hidden_layer_dims,
                 'discriminator_dim': hidden_layer_dims}
 
@@ -84,7 +88,7 @@ class CopulaGANModel(Model):
         data_size = len(data.data.columns)
         dim = 4*data_size
         hidden_layer_dims = (dim, dim)
-        return {'field_types': data.metadata.metadata,
+        return {'field_types': _get_field_types_from_data(data),
                 'generator_dim': hidden_layer_dims,
                 'discriminator_dim': hidden_layer_dims}
 

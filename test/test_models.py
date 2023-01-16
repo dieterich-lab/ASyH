@@ -5,12 +5,17 @@ import ASyH.models
 import ASyH.data
 
 
+_input_data_cache = None
+
+
 @pytest.fixture
 def input_data():
-    input_file = join(dirname(__file__), 'testdata.csv')
-    data = ASyH.data.Data()
-    data.read(input_file)
-    yield data
+    global _input_data_cache
+    if _input_data_cache is None:
+        input_file = join(dirname(dirname(__file__)), 'examples', 'Kaggle_Sirio_Libanes-16features.xlsx')
+        _input_data_cache = ASyH.data.Data()
+        _input_data_cache.read(input_file)
+    yield _input_data_cache
 
 
 def test_construct_tvae_model():
