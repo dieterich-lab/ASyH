@@ -1,9 +1,15 @@
 import unittest
 
 import ASyH.models
+import ASyH.data
 
 
 class TestASyHModel(unittest.TestCase):
+
+    def setUp(self):
+        # a reduced dataset derived from Kaggle: Sirio-Libanes Covid data
+        self.testdata = ASyH.data.Data()
+        self.testdata.read("testdata.csv")
 
     def test_construct_TVAEModel(self):
         '''Testing initialization of the TVAE model'''
@@ -24,7 +30,7 @@ class TestASyHModel(unittest.TestCase):
         # be an AssertError in _train():
         with self.assertRaises(AssertionError):
             m._train()
-        m.train(testdata)
+        m._train(self.testdata)
         self.assertTrue(m._trained)
         sample = m.synthesize()
 
@@ -47,7 +53,7 @@ class TestASyHModel(unittest.TestCase):
         # be an AssertError in _train():
         with self.assertRaises(AssertionError):
             m._train()
-        m.train(testdata)
+        m._train(self.testdata)
         self.assertTrue(m._trained)
         sample = m.synthesize()
 
@@ -70,7 +76,7 @@ class TestASyHModel(unittest.TestCase):
         # be an AssertError in _train():
         with self.assertRaises(AssertionError):
             m._train()
-        m.train(testdata)
+        m._train(self.testdata)
         self.assertTrue(m._trained)
         sample = m.synthesize()
 
@@ -93,7 +99,7 @@ class TestASyHModel(unittest.TestCase):
         # be an AssertError in _train():
         with self.assertRaises(AssertionError):
             m._train()
-        m.train(testdata)
+        m._train(self.testdata)
         self.assertTrue(m._trained)
         sample = m.synthesize()
 
