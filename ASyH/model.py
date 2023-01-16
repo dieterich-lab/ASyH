@@ -35,7 +35,7 @@ class Model:
             self._metadata = None
 
     def _train(self, data=None):
-        assert(self._training_data is not None or data is not None)
+        assert self._training_data is not None or data is not None
         if data is None:
             data = self._training_data
         if self._sdv_model is None:

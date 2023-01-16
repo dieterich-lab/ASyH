@@ -50,14 +50,12 @@ def _mixed_cosine(numerical_array_a, categorical_array_a,
     '''
     # find unspecified (None) values in any of the two arrays and ignore them in
     # both:
-    nan_elements_num = \
-          numpy.isnan(numerical_array_a) \
+    nan_elements_num = numpy.isnan(numerical_array_a) \
         + numpy.isnan(numerical_array_b)
 
     def _isnone(el):
-        return el==None
-    nan_elements_cat = \
-          _isnone(categorical_array_a) \
+        return el is None
+    nan_elements_cat = _isnone(categorical_array_a) \
         + _isnone(categorical_array_b)
 
     a_num = numerical_array_a[~nan_elements_num]

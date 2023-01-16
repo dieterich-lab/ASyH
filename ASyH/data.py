@@ -13,6 +13,10 @@ import magic
 import re
 
 
+class DataError(LookupError):
+    pass
+
+
 # ASyH reads data into a pandas dataframe, so, the return type of the read-in
 # methods are pandas dataframes.
 class Data:
@@ -28,16 +32,16 @@ class Data:
         self._data = data
         self._metadata = metadata
 
-    def read(self, input_file): # generic read method inferring file format from 'magic'
+    def read(self, input_file):  # generic read method inferring file format from 'magic'
         filetype = magic.from_file(input_file)
         x = re.compile(".*Excel.*")
         c = re.compile(".*CSV.*")
-        if (x.match(filetype)):
+        if x.match(filetype):
             data = pandas.read_excel(input_file)
-        elif(c.match(filetype)):
+        elif c.match(filetype):
             data = pandas.read_csv(input_file)
         else:
-            raise DataError("Cannot determine input file type: ") from LookupError
+            raise DataError("Cannot determine input file type: ")
         # the data contains a spurious index column when saved from pandas!
         self._data = data.drop(data.columns[0], axis=1)
 
