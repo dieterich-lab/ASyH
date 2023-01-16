@@ -12,8 +12,6 @@ import pandas
 import magic
 import re
 
-import ASyH.metadata
-
 
 class DataError(LookupError):
     pass
