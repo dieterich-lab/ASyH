@@ -59,8 +59,8 @@ class CTGANModel(Model):
         dim = 4*data_size
         hidden_layer_dims = (dim, dim)
         return {'field_types': data.metadata.metadata,
-                'generator_dims': hidden_layer_dims,
-                'discriminator_dims': hidden_layer_dims}
+                'generator_dim': hidden_layer_dims,
+                'discriminator_dim': hidden_layer_dims}
 
 
 class CopulaGANModel(Model):
@@ -68,7 +68,7 @@ class CopulaGANModel(Model):
 
     def __init__(self, data=None):
         def sdv_model_constructor(arg_dict):
-            sdv.tabular.CopulaGAN(**arg_dict)
+            return sdv.tabular.copulagan.CopulaGAN(**arg_dict)
 
         Model.__init__(self, model_type='CopulaGAN',
                        sdv_model_constructor=sdv_model_constructor,
@@ -85,8 +85,8 @@ class CopulaGANModel(Model):
         dim = 4*data_size
         hidden_layer_dims = (dim, dim)
         return {'field_types': data.metadata.metadata,
-                'generator_dims': hidden_layer_dims,
-                'discriminator_dims': hidden_layer_dims}
+                'generator_dim': hidden_layer_dims,
+                'discriminator_dim': hidden_layer_dims}
 
 
 class GaussianCopulaModel(Model):
@@ -94,7 +94,7 @@ class GaussianCopulaModel(Model):
 
     def __init__(self, data=None):
         def sdv_model_constructor(arg_dict):
-            sdv.tabular.GaussianCopula(**arg_dict)
+            return sdv.tabular.copulas.GaussianCopula(**arg_dict)
 
         Model.__init__(self, model_type='GaussianCopula',
                        sdv_model_constructor=sdv_model_constructor,
