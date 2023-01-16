@@ -27,7 +27,7 @@ class Model:
         self._model_type = model_type
         self._create_sdv_model = sdv_model_constructor
         if data:
-            self._training_data = data.data
+            self._training_data = data
             self._metadata = data.metadata
             self._input_data_size = data.data.shape[0]
         else:
@@ -42,8 +42,8 @@ class Model:
             # create the SDV model just when we need it
             self._sdv_model = \
                 self._create_sdv_model(self.adapted_arguments(data))
-        self.sdv_model.fit(data)
-        self._input_data_size = data.shape[0]
+        self.sdv_model.fit(data.data)
+        self._input_data_size = data.data.shape[0]
         self._trained = True
 
     def save(self, filename=None):
