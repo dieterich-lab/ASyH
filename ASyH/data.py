@@ -12,6 +12,8 @@ import pandas
 import magic
 import re
 
+import ASyH.metadata
+
 
 class DataError(LookupError):
     pass
@@ -25,6 +27,7 @@ class Data:
     def data(self):
         return self._data
 
+    @property
     def metadata(self):
         return self._metadata
 
@@ -62,7 +65,7 @@ class SyntheticData(Data):
     def write(self, outputfile):
         x = re.compile(".xls.?")
         if (x.match(outputfile) | x.match(outputfile)):
-            self._data.write_excel(outputfile)
+            self._data.to_excel(outputfile)
         else:
             # the default is CSV, irrespective of the file suffix.
-            self._data.write_csv(outputfile)
+            self._data.to_csv(outputfile)
