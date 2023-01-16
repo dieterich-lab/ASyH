@@ -31,6 +31,8 @@ class Metadata:
             json.dump(self.metadata, f)
 
     def variables_by_type(self, type_string):
+        '''Filter the dataset's variables by the string in their type
+        information.'''
         field_types = self.metadata['tables']['data']['fields']
         return [key  # the key, i.e. variable name
                 for key, typeinfo in field_types.items()
