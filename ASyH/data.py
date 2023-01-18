@@ -42,9 +42,11 @@ class Data:
         x = re.compile(".*Excel.*")
         c = re.compile(".*CSV.*")
         if x.match(filetype):
-            data = pandas.read_excel(input_file)
+            # rounding the input to work around
+            # https://github.com/sdv-dev/SDV/issues/1039
+            data = pandas.read_excel(input_file).round(decimals=14)
         elif c.match(filetype):
-            data = pandas.read_csv(input_file)
+            data = pandas.read_csv(input_file).round(decimals=14)
         else:
             raise DataError("Cannot determine input file type: ")
         # the data contains a spurious index column when saved from pandas!
