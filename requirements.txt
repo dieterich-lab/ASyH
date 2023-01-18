@@ -1,3 +1,0 @@
-sdv
-openpyxl
-python-magic

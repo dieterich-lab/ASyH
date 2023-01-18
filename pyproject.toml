@@ -1,0 +1,21 @@
+[build-system]
+requires = ['setuptools', 'wheel']
+
+[project]
+name = 'ASyH'
+version = '0.0.1'
+dependencies = [
+    'sdv==0.16.0',
+    'openpyxl',
+    'python-magic',
+]
+
+[tool.setuptools.packages.find]
+exclude = ['tests']
+
+[project.optional-dependencies]
+tests = [
+    'flake8',
+    'pytest',
+    'pytest-cov',
+]
