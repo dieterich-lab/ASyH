@@ -26,11 +26,11 @@ class DataError(LookupError):
 class Data:
     # a pandas data frame holding all the actual data
     @property
-    def data(self):
+    def data(self) -> pandas.DataFrame:
         return self._data
 
     @property
-    def metadata(self):
+    def metadata(self) -> Metadata:
         return self._metadata
 
     def __init__(self, data: Optional[DataFrame] = None, metadata: Optional[Metadata] = None):
