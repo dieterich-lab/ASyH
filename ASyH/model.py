@@ -19,13 +19,12 @@ class Model:
     def model_type(self):
         return self._model_type
 
-    _sdv_model = None
-    _input_data_size = 0
-    _trained = False
-
     def __init__(self, model_type=None, sdv_model_constructor=None, data=None):
+        self._sdv_model = None
         self._model_type = model_type
         self._create_sdv_model = sdv_model_constructor
+
+        self._input_data_size = 0
         if data:
             self._training_data = data
             self._metadata = data.metadata
@@ -33,6 +32,8 @@ class Model:
         else:
             self._training_data = None
             self._metadata = None
+
+        self._trained = False
 
     def _train(self, data=None):
         assert self._training_data is not None or data is not None
