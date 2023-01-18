@@ -1,16 +1,15 @@
 # ToDo: detailed class docstring for class Pipeline.
 """ASyH Pipeline base class"""
-
-
+from ASyH.data import Data
+from ASyH.model import Model
 from ASyH.abstract_pipeline import AbstractPipeline
 from ASyH.hook import ScoringHook
-import ASyH.data
 
 
 class Pipeline(AbstractPipeline):
     """The basic ASyH Pipeline."""
 
-    def __init__(self, model, input_data):
+    def __init__(self, model: Model, input_data: Data):
         self._model = model
         self._input_data = input_data
         self._scoring_hook = ScoringHook()
@@ -23,7 +22,7 @@ class Pipeline(AbstractPipeline):
         self._scoring_hook.add(scoring_function)
 
     def run(self):
-        synthetic_data = ASyH.data.Data(data=self._model.synthesize())
+        synthetic_data = Data(data=self._model.synthesize())
         detailed_scores = self._scoring_hook.execute(self._input_data,
                                                      synthetic_data)
 

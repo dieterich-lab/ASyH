@@ -1,22 +1,20 @@
 # ASyH's simple metadata inference
 
 import pathlib
-# import utils
 import json
+from typing import Optional, Union, Dict, Any
+
+from pandas import DataFrame
 
 
 class Metadata:
-
-    # metadata generally is a dict:
-    metadata = {}
-
     def _skeleton(self, data):
         return
 
     def _create_skeleton_file(self, data):
         return
 
-    def read(self, filename):
+    def read(self, filename: Union[str, pathlib.Path]):
         '''Read the metadata from file into the metadata dict.'''
         if pathlib.Path(filename).is_file():
             with open(filename, 'r', encoding='utf-8') as f:
@@ -24,10 +22,10 @@ class Metadata:
         else:
             raise FileNotFoundError
 
-    def save(self, outfilename):
+    def save(self, out_filename: str):
         '''Save the metadata dict to json file.'''
         # (later: +annotating the possible SDV type)
-        with open(outfilename, 'w', encoding='utf-8') as f:
+        with open(out_filename, 'w', encoding='utf-8') as f:
             json.dump(self.metadata, f)
 
     def variables_by_type(self, type_string):
@@ -38,7 +36,7 @@ class Metadata:
                 for key, typeinfo in field_types.items()
                 if typeinfo['type'] == type_string]
 
-    def __init__(self, data=None):
+    def __init__(self, data: Optional[Union[DataFrame, Dict[str, Any]]] = None):
         # for now just use the dataFrame's dtypes:
         if data is not None:
             self.metadata = data.dtypes.to_dict()

@@ -5,7 +5,12 @@
 
 from datetime import datetime
 import os.path
-# from ASyH import utils
+from typing import Optional, Callable, Any, Dict
+
+from pandas import DataFrame
+from sdv.tabular.base import BaseTabularModel
+
+from ASyH.data import Data
 
 
 class Model:
@@ -19,7 +24,12 @@ class Model:
     def model_type(self):
         return self._model_type
 
-    def __init__(self, model_type=None, sdv_model_constructor=None, data=None):
+    def __init__(
+            self,
+            model_type: Optional[str] = None,
+            sdv_model_constructor: Optional[Callable[..., BaseTabularModel]] = None,
+            data: Optional[Data] = None
+    ):
         self._sdv_model = None
         self._model_type = model_type
         self._create_sdv_model = sdv_model_constructor
@@ -35,7 +45,7 @@ class Model:
 
         self._trained = False
 
-    def _train(self, data=None):
+    def _train(self, data: Optional[Data] = None):
         assert self._training_data is not None or data is not None
         if data is None:
             data = self._training_data
@@ -47,7 +57,7 @@ class Model:
         self._input_data_size = data.data.shape[0]
         self._trained = True
 
-    def save(self, filename=None):
+    def save(self, filename: Optional[str] = None):
         '''Save the SDV model to pkl.'''
         if not self._sdv_model:
             return
@@ -58,7 +68,7 @@ class Model:
             filename = filename + '.pkl'
         self._sdv_model.save(filename)
 
-    def read(self, input_filename):
+    def read(self, input_filename: str):
         '''Read the SDV model from pkl.'''
         # does filename exist?
         if not os.path.exists(input_filename):
@@ -67,15 +77,15 @@ class Model:
         if self._sdv_model:
             self._sdv_model.read(input_filename)
 
-    def synthesize(self, sample_size=-1):
+    def synthesize(self, sample_size: int = -1) -> DataFrame:
         '''Create synthetic data.'''
         if not self._trained:
-            self._train()
+            self._train(None)
         if sample_size == -1:
             sample_size = self._input_data_size
         return self.sdv_model.sample(sample_size)
 
-    def adapted_arguments(self, data):
+    def adapted_arguments(self, data: Optional[Data] = None) -> Dict[str, Any]:
         '''Method for specific models to adapt the constructor arguments to
         input data.  This method is supposed to be overridden by the specific
         Model to produce the correct argument dictionary {keyword: value} for

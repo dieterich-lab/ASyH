@@ -1,16 +1,19 @@
 '''ASyH Concrete Model-Derived Classes'''
+from typing import Optional, Dict, Any
+
 #
 # ToDos:
 #   Implement adapt() for models to tune the model internals to the data.
 
 import sdv
+from ASyH.data import Data
 from ASyH.model import Model
 
 
 class TVAEModel(Model):
     '''Specific ASyH Model for SDV\'s TVAE model.'''
 
-    def __init__(self, data=None):
+    def __init__(self, data: Optional[Data] = None):
 
         def sdv_model_constructor(arg_dict):
             return sdv.tabular.TVAE(**arg_dict)
@@ -19,7 +22,7 @@ class TVAEModel(Model):
                        sdv_model_constructor=sdv_model_constructor,
                        data=data)
 
-    def adapted_arguments(self, data):
+    def adapted_arguments(self, data: Optional[Data] = None) -> Dict[str, Any]:
         '''Create SDV model specific argument dict to pass to the constructor.
         This method is meant to adapt the TVAE sdv model internals to the input
         data.
@@ -43,7 +46,7 @@ def _get_field_types_from_data(data):
 class CTGANModel(Model):
     '''Specific ASyH Model for SDV\'s CTGAN model.'''
 
-    def __init__(self, data=None):
+    def __init__(self, data: Optional[Data] = None):
 
         def sdv_model_constructor(arg_dict):
             return sdv.tabular.CTGAN(**arg_dict)
@@ -52,7 +55,7 @@ class CTGANModel(Model):
                        sdv_model_constructor=sdv_model_constructor,
                        data=data)
 
-    def adapted_arguments(self, data):
+    def adapted_arguments(self, data: Optional[Data] = None) -> Dict[str, Any]:
         '''Create SDV model specific argument dict to pass to the constructor.
         This method is meant to adapt the CTGAN sdv model internals to the
         input data.
@@ -70,7 +73,7 @@ class CTGANModel(Model):
 class CopulaGANModel(Model):
     '''Specific ASyH Model for SDV\'s CopulaGAN model.'''
 
-    def __init__(self, data=None):
+    def __init__(self, data: Optional[Data] = None):
         def sdv_model_constructor(arg_dict):
             return sdv.tabular.copulagan.CopulaGAN(**arg_dict)
 
@@ -78,7 +81,7 @@ class CopulaGANModel(Model):
                        sdv_model_constructor=sdv_model_constructor,
                        data=data)
 
-    def adapted_arguments(self, data):
+    def adapted_arguments(self, data: Optional[Data] = None) -> Dict[str, Any]:
         '''Create SDV model specific argument dict to pass to the constructor.
         This method is meant to adapt the CopulaGAN sdv model internals to the
         input data.
@@ -96,7 +99,7 @@ class CopulaGANModel(Model):
 class GaussianCopulaModel(Model):
     '''Specific ASyH Model for SDV\'s GaussianCopula model.'''
 
-    def __init__(self, data=None):
+    def __init__(self, data: Optional[Data] = None):
         def sdv_model_constructor(arg_dict):
             return sdv.tabular.copulas.GaussianCopula(**arg_dict)
 
@@ -104,6 +107,6 @@ class GaussianCopulaModel(Model):
                        sdv_model_constructor=sdv_model_constructor,
                        data=data)
 
-    def adapt_arguments(self, data):
+    def adapted_arguments(self, data: Optional[Data] = None) -> Dict[str, Any]:
         '''Method to adapt the Gaussian Copula sdv model internals to data'''
-        return {'field_types': data.metadata.metadata}
+        return {'field_types': _get_field_types_from_data(data)}

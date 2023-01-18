@@ -7,10 +7,14 @@
 #   downstream modules like *Model.
 #
 #   Module docstring
+from typing import Optional
+import re
+import magic
 
 import pandas
-import magic
-import re
+from pandas import DataFrame
+
+from ASyH.metadata import Metadata
 
 
 class DataError(LookupError):
@@ -29,7 +33,7 @@ class Data:
     def metadata(self):
         return self._metadata
 
-    def __init__(self, data=None, metadata=None):
+    def __init__(self, data: Optional[DataFrame] = None, metadata: Optional[Metadata] = None):
         self._data = data
         self._metadata = metadata
 
@@ -46,23 +50,23 @@ class Data:
         # the data contains a spurious index column when saved from pandas!
         self._data = data.drop(data.columns[0], axis=1)
 
-    def set_metadata(self, metadata=None):
+    def set_metadata(self, metadata: Optional[Metadata] = None):
         self._metadata = metadata
 
 
 class RealData(Data):
-    def __init__(self, data):
+    def __init__(self, data: Optional[DataFrame]):
         Data.__init__(self, data)
 
 
 # Synthetic data, in contrast to real data, can be written to files
 class SyntheticData(Data):
-    def __init__(self, data):
+    def __init__(self, data: Optional[DataFrame]):
         Data.__init__(self, data)
 
     def write(self, outputfile):
         x = re.compile(".xls.?")
-        if (x.match(outputfile) | x.match(outputfile)):
+        if x.search(outputfile):
             self._data.to_excel(outputfile)
         else:
             # the default is CSV, irrespective of the file suffix.

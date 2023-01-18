@@ -1,4 +1,5 @@
 '''Hooks: simple execution hooks for common point of execution.'''
+from ASyH.data import Data
 
 
 class Hook:
@@ -24,7 +25,7 @@ class ScoringHook(Hook):
     where real_data and synthetic_data are objects of the ASyH.data.Data
     class.  Only add such functions, otherwise exceptions will be thrown.'''
 
-    def execute(self, real_data, synthetic_data):
+    def execute(self, real_data: Data, synthetic_data: Data):
         '''Execute all scoring functions in the hook,
         return a dict of the format function: return_value.'''
         return {func.__name__: func(real_data, synthetic_data)
