@@ -37,7 +37,10 @@ class Data:
         self._data = data
         self._metadata = metadata
 
-    def read(self, input_file):  # generic read method inferring file format from 'magic'
+    def read(self, input_file):
+        """Generic read method inferring file format from \'magic\'.  Excel and
+        CSV are supported.
+        """
         filetype = magic.from_file(input_file)
         x = re.compile(".*Excel.*")
         c = re.compile(".*CSV.*")
@@ -61,15 +64,21 @@ class RealData(Data):
         Data.__init__(self, data)
 
 
-# Synthetic data, in contrast to real data, can be written to files
 class SyntheticData(Data):
+    """Synthetic data class: In contrast to real data, it can be written to
+    file.
+    """
+
     def __init__(self, data: Optional[DataFrame]):
         Data.__init__(self, data)
 
     def write(self, outputfile):
+        """Write synthetic data to output to file.  Excel and CSV are supported.
+        The default is CSV, if the given output file name isn't compatible with
+        Excel file endings.
+        """
         x = re.compile(".xls.?")
         if x.search(outputfile):
             self._data.to_excel(outputfile)
         else:
-            # the default is CSV, irrespective of the file suffix.
             self._data.to_csv(outputfile)
