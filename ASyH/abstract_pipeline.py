@@ -5,5 +5,5 @@ class AbstractPipeline(ABC):
     '''Abstract class for ASyH pipelines.'''
 
     @abstractmethod
-    def _pipeline(self):
-        pass  # To be overwritten by the derived pipeline class
+    def run(self):
+        pass
