@@ -53,11 +53,9 @@ def _mixed_cosine(numerical_array_a, categorical_array_a,
     nan_elements_num = numpy.isnan(numerical_array_a) \
         + numpy.isnan(numerical_array_b)
 
-    def _isnone(el):
-        # we want to map this over numpy arrays, so, we have use == instead of 'if'.
-        return el == None
-    nan_elements_cat = _isnone(categorical_array_a) \
-        + _isnone(categorical_array_b)
+    # For non-numerical data, we have to resort to this:
+    nan_elements_cat = numpy.equal(categorical_array_a, None) \
+        + numpy.equal(categorical_array_b, None)
 
     a_num = numerical_array_a[~nan_elements_num]
     b_num = numerical_array_b[~nan_elements_num]
