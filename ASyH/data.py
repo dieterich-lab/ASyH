@@ -16,9 +16,7 @@ from pandas import DataFrame
 
 from ASyH.metadata import Metadata
 
-
-class DataError(LookupError):
-    pass
+from ASyH.dataerror import DataError
 
 
 # ASyH reads data into a pandas dataframe, so, the return type of the read-in
