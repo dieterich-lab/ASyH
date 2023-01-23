@@ -1,7 +1,8 @@
 '''Define the standard application of ASyH.'''
 import pathlib
 
-from sdv.metrics.tabular import KSComplement, CSTest
+from sdv.metrics.tabular import KSComplement, CSTest, CorrelationSimilarity, \
+    BinaryLogisticRegression
 
 from ASyH.data import Data
 from ASyH.metadata import Metadata
@@ -11,7 +12,7 @@ from ASyH.pipelines \
 from ASyH.dispatch import concurrent_dispatch
 
 import ASyH.metrics.anonymity
-import ASyH.metrics.sdv_metrics
+import ASyH.metrics
 
 
 class Application:
@@ -72,14 +73,22 @@ class Application:
                      CopulaGANPipeline(input_data),
                      GaussianCopulaPipeline(input_data)]
 
-        self._add_scoring(ASyH.metrics.anonymity.mean_pairwise_distance,
+        self._add_scoring(ASyH.metrics.anonymity.maximum_cosine_similarity,
                           pipelines=pipelines)
         sdv_kscomplement = \
-            ASyH.metrics.sdv_metrics.adapt_sdv_metric(KSComplement)
+            ASyH.metrics.adapt_sdv_metric(KSComplement)
         self._add_scoring(sdv_kscomplement, pipelines=pipelines)
         sdv_cstest = \
-            ASyH.metrics.sdv_metrics.adapt_sdv_metric(CSTest)
+            ASyH.metrics.adapt_sdv_metric(CSTest)
         self._add_scoring(sdv_cstest, pipelines=pipelines)
+
+        sdv_correlation_similarity = \
+            ASyH.metrics.adapt_sdv_metric_normalized(CorrelationSimilarity)
+        self._add_scoring(sdv_correlation_similarity, pipelines=pipelines)
+
+        # sdv_ML_peformance_logistic_regression = \
+        #     ASyH.metrics.adapt_sdv_metric_normalized(BinaryLogisticRegression)
+        # self._add_scoring(sdv_ML_peformance_logistic_regression, pipelines=pipelines)
         # ...
 
         self._results = concurrent_dispatch(*pipelines)
