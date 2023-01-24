@@ -26,7 +26,7 @@ class Pipeline(AbstractPipeline):
         detailed_scores = self._scoring_hook.execute(self._input_data,
                                                      synthetic_data)
 
-        print("Scoring: " + str(detailed_scores))
+        print(f'{self.model.model_type} Scoring: {str(detailed_scores)}')
         # Assuming, the scoring functions are maximizing, nomalized, and
         # weighted equally:
         return sum(detailed_scores.values()) / len(detailed_scores)
