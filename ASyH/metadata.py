@@ -1,7 +1,5 @@
 # ASyH's simple metadata inference
 
-import pdb
-
 import pathlib
 import json
 from typing import Optional, Union, Dict, Any

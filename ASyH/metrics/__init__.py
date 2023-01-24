@@ -9,4 +9,8 @@ __all__ = [
     'bivariate_statistics',
     'anonymity',
     'sdv_metrics',
+    'adapt_sdv_metric',
+    'adapt_sdv_metric_normalized',
+    'mean_pairwise_distance',
+    'maximum_cosine_similarity',
 ]

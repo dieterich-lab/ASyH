@@ -1,8 +1,7 @@
 '''Define the standard application of ASyH.'''
 import pathlib
 
-from sdv.metrics.tabular import KSComplement, CSTest, CorrelationSimilarity, \
-    BinaryLogisticRegression
+from sdv.metrics.tabular import KSComplement, CSTest, CorrelationSimilarity
 
 from ASyH.data import Data
 from ASyH.metadata import Metadata
