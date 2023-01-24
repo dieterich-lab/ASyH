@@ -27,8 +27,8 @@ def _categorical_inner(a, b):
     '''
     def _categorical_mult(a_i, b_i):
         if a_i != b_i:
-            return 0
-        return 1
+            return 0.0
+        return 1.0
 
     return sum((_categorical_mult(a[i], b[i])
                 for i in range(len(a))))
