@@ -23,16 +23,16 @@ class Metadata:
     @property
     def fields(self):
         'Property method for retrieving the \'fields\' entry in the metadata.'
-        if self._get_set_tablename() is None:
+        if self._tablename is None:
             return None
         return self.metadata['tables'][self._tablename]['fields']
 
     @property
     def table(self):
         'Property method for retrieving the (zeroth) \'tables\' entry in the metadata.'
-        if self._get_set_tablename() is not None:
-            return self.metadata['tables'][self._tablename]
-        return None
+        if self._tablename is None:
+            return None
+        return self.metadata['tables'][self._tablename]
 
     def read(self, filename: Union[str, pathlib.Path]):
         '''Read the metadata from file into the metadata dict.'''
@@ -41,8 +41,7 @@ class Metadata:
                 self.metadata = json.load(f)
         else:
             raise FileNotFoundError
-        self._validate_metadata(self.metadata)
-        self._tablename = self._get_set_tablename()
+        self._tablename = self._get_tablename(self.metadata)
 
     def save(self, out_filename: str):
         '''Save the metadata dict to json file.'''
@@ -59,15 +58,23 @@ class Metadata:
                 for key, typeinfo in field_types.items()
                 if typeinfo['type'] == type_string]
 
-    def __init__(self, data: Optional[Union[DataFrame, Dict[str, Any]]] = None):
-        # for now just use the dataFrame's dtypes:
-        if data is not None:
-            self.metadata = data.dtypes.to_dict()
-            self._validate_metadata(self.metadata)
-            self._tablename = self._get_set_tablename()
-        else:
-            self.metadata = None
-            self._tablename = None
+    def __init__(self,
+                 metadata: Optional[Dict[str, Any]] = None,
+                 data: Optional[DataFrame] = None):
+        # If both metadata and data are specified, metadata is used.
+
+        # If only a dataframe is given, there is no way to determine a table
+        # name, so we set it ourselves to 'data':
+        self._tablename = None
+        if metadata is None and data is not None:
+            metadata = {'tables':
+                        {'data':
+                         {'fields':
+                          data.dtypes.to_dict()}
+                         }
+                        }
+        self.metadata = metadata
+        self._tablename = self._get_tablename(self.metadata)
 
     def _infer(self, data_column):
         # ToDo!
@@ -86,11 +93,9 @@ class Metadata:
             Warning('Metadate describes a multitable dataset. ASyH works only \
             with single table datasets.\n Using table' + list(metadata['tables'].keys())[0])
 
-    def _get_set_tablename(self):
-        if self._tablename is not None:
-            return self._tablename
-        if self.metadata is None:
+    def _get_tablename(self, metadata):
+        if metadata is None:
             return None
-        self._validate_metadata(self.metadata)
-        self._tablename = list(self.metadata['tables'].keys())[0]
-        return self._tablename
+        self._validate_metadata(metadata)
+        tablename = list(metadata['tables'].keys())[0]
+        return tablename
