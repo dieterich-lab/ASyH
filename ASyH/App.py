@@ -41,32 +41,42 @@ class Application:
         self._best = pipelines[best_score].model
         return self._best
 
-    def synthesize(self, input_file, metadata_file=None, sample_size=-1):
+    def synthesize(self, input_file,
+                   metadata=None, metadata_file=None, sample_size=-1):
         '''Synthesize data using the best-scoring model.'''
         if self._best is None:
-            self.process(input_file, metadata_file)
+            self.process(input_file,
+                         metadata_file=metadata_file,
+                         metadata=metadata)
         return self._best.synthesize(sample_size)
 
-    def process(self, input_file, metadata_file=None):
+    def process(self, input_file, metadata_file=None, metadata=None):
         '''Process the default ASyH pipeline.'''
         input_data = Data()
         input_data.read(input_file)
 
-        if metadata_file is None:
+        if metadata_file is not None and metadata is not None:
+            Warning('ASyH.App.Application: both metadata_file and metadata have been \
+            specified:\n\tDefaulting to use metadata_file as input source.')
+
+        if metadata_file is not None:
+            metadata = Metadata()
+            metadata.read(metadata_file)
+            return self.process(input_file, metadata=metadata)
+
+        # use a default .json file when neither metadata_file nor metadata were given:
+        if metadata is None:
             standard_metadata_file = \
                 pathlib.Path(input_file).with_suffix('.json')
             if standard_metadata_file.exists():
                 Warning('Using existing standard metadata file: '
                         + str(standard_metadata_file))
-                metadata = Metadata()
-                metadata.read(standard_metadata_file)
-                input_data.set_metadata(metadata)
-            else:
-                Warning('No metadata file provided and no default file found.')
-        else:
-            metadata = Metadata()
-            metadata.read(metadata_file)
-            input_data.set_metadata(metadata)
+                return self.process(input_file, metadata_file=standard_metadata_file)
+
+            Warning('No metadata file provided and no default file found.')
+            # in this case, metadata is left None!
+
+        input_data.set_metadata(metadata)
 
         pipelines = [TVAEPipeline(input_data),
                      CTGANPipeline(input_data),
