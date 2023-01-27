@@ -51,8 +51,6 @@ class Application:
 
     def process(self, input_file, metadata_file=None, metadata=None):
         '''Process the default ASyH pipeline.'''
-        input_data = Data()
-        input_data.read(input_file)
 
         if metadata_file is not None and metadata is not None:
             Warning('ASyH.App.Application: both metadata_file and metadata have been \
@@ -75,6 +73,15 @@ class Application:
             Warning('No metadata file provided and no default file found.')
             # in this case, metadata is left None!
 
+        input_data = Data()
+        input_data.read(input_file)
+
+        return self.train(input_data, metadata)
+
+    def train(self, input_data, metadata):
+        """Train each model in its own pipeline using input_data and metadata,
+        score, select and return the best scoring model.
+        """
         input_data.set_metadata(metadata)
 
         pipelines = [TVAEPipeline(input_data),
