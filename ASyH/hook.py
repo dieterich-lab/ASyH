@@ -1,4 +1,7 @@
 '''Hooks: simple execution hooks for common point of execution.'''
+
+from sdmetrics.errors import IncomputableMetricError
+
 from ASyH.data import Data
 
 
@@ -28,5 +31,11 @@ class ScoringHook(Hook):
     def execute(self, real_data: Data, synthetic_data: Data):
         '''Execute all scoring functions in the hook,
         return a dict of the format function: return_value.'''
-        return {func.__name__: func(real_data, synthetic_data)
-                for func in self._function_list}
+        ret = {}
+        for func in self._function_list:
+            try:
+                res = func(real_data, synthetic_data)
+                ret[func.__name__] = res
+            except IncomputableMetricError:
+                pass
+        return ret
