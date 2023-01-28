@@ -8,6 +8,7 @@ dependencies = [
     'sdv',
     'openpyxl',
     'python-magic',
+    'gower',
 ]
 
 [tool.setuptools.packages.find]
