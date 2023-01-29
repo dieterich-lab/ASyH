@@ -89,8 +89,8 @@ class Application:
                      CopulaGANPipeline(input_data),
                      GaussianCopulaPipeline(input_data)]
 
-        self._add_scoring(ASyH.metrics.anonymity.maximum_cosine_similarity,
-                          pipelines=pipelines)
+        # self._add_scoring(ASyH.metrics.anonymity.maximum_cosine_similarity,
+        #                  pipelines=pipelines)
         sdv_kscomplement = \
             ASyH.metrics.adapt_sdv_metric(KSComplement)
         self._add_scoring(sdv_kscomplement, pipelines=pipelines)
