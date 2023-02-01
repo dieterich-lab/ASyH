@@ -1,5 +1,7 @@
 # ToDo: detailed class docstring for class Pipeline.
 """ASyH Pipeline base class"""
+import tempfile, os
+
 from ASyH.data import Data
 from ASyH.model import Model
 from ASyH.abstract_pipeline import AbstractPipeline
@@ -22,10 +24,13 @@ class Pipeline(AbstractPipeline):
         self._scoring_hook.add(scoring_function)
 
     def run(self):
-        synthetic_data = Data(data=self._model.synthesize())
-        detailed_scores = self._scoring_hook.execute(self._input_data,
-                                                     synthetic_data)
-
+        save_cwd = os.getcwd()
+        with tempfile.TemporaryDirectory() as workdir:
+            os.chdir(workdir)
+            synthetic_data = Data(data=self._model.synthesize())
+            detailed_scores = self._scoring_hook.execute(self._input_data,
+                                                         synthetic_data)
+        os.chdir(save_cwd)
         print(f'{self.model.model_type} Scoring: {str(detailed_scores)}')
         # Assuming, the scoring functions are maximizing, nomalized, and
         # weighted equally:
