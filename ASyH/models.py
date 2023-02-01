@@ -13,13 +13,11 @@ from ASyH.model import Model
 class TVAEModel(Model):
     '''Specific ASyH Model for SDV\'s TVAE model.'''
 
+    def sdv_model_constructor(self, arg_dict):
+        return sdv.tabular.TVAE(**arg_dict)
+
     def __init__(self, data: Optional[Data] = None):
-
-        def sdv_model_constructor(arg_dict):
-            return sdv.tabular.TVAE(**arg_dict)
-
         Model.__init__(self, model_type='TVAE',
-                       sdv_model_constructor=sdv_model_constructor,
                        data=data)
 
     def adapted_arguments(self, data: Optional[Data] = None) -> Dict[str, Any]:
@@ -46,13 +44,11 @@ def _get_field_types_from_data(data):
 class CTGANModel(Model):
     '''Specific ASyH Model for SDV\'s CTGAN model.'''
 
+    def sdv_model_constructor(self, arg_dict):
+        return sdv.tabular.CTGAN(**arg_dict)
+
     def __init__(self, data: Optional[Data] = None):
-
-        def sdv_model_constructor(arg_dict):
-            return sdv.tabular.CTGAN(**arg_dict)
-
         Model.__init__(self, model_type='CTGAN',
-                       sdv_model_constructor=sdv_model_constructor,
                        data=data)
 
     def adapted_arguments(self, data: Optional[Data] = None) -> Dict[str, Any]:
@@ -73,12 +69,11 @@ class CTGANModel(Model):
 class CopulaGANModel(Model):
     '''Specific ASyH Model for SDV\'s CopulaGAN model.'''
 
-    def __init__(self, data: Optional[Data] = None):
-        def sdv_model_constructor(arg_dict):
-            return sdv.tabular.copulagan.CopulaGAN(**arg_dict)
+    def sdv_model_constructor(self, arg_dict):
+        return sdv.tabular.copulagan.CopulaGAN(**arg_dict)
 
+    def __init__(self, data: Optional[Data] = None):
         Model.__init__(self, model_type='CopulaGAN',
-                       sdv_model_constructor=sdv_model_constructor,
                        data=data)
 
     def adapted_arguments(self, data: Optional[Data] = None) -> Dict[str, Any]:
@@ -99,12 +94,11 @@ class CopulaGANModel(Model):
 class GaussianCopulaModel(Model):
     '''Specific ASyH Model for SDV\'s GaussianCopula model.'''
 
-    def __init__(self, data: Optional[Data] = None):
-        def sdv_model_constructor(arg_dict):
-            return sdv.tabular.copulas.GaussianCopula(**arg_dict)
+    def sdv_model_constructor(self, arg_dict):
+        return sdv.tabular.copulas.GaussianCopula(**arg_dict)
 
+    def __init__(self, data: Optional[Data] = None):
         Model.__init__(self, model_type='GaussianCopula',
-                       sdv_model_constructor=sdv_model_constructor,
                        data=data)
 
     def adapted_arguments(self, data: Optional[Data] = None) -> Dict[str, Any]:

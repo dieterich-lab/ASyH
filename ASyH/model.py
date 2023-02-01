@@ -27,12 +27,10 @@ class Model:
     def __init__(
             self,
             model_type: Optional[str] = None,
-            sdv_model_constructor: Optional[Callable[..., BaseTabularModel]] = None,
             data: Optional[Data] = None
     ):
         self._sdv_model = None
         self._model_type = model_type
-        self._create_sdv_model = sdv_model_constructor
 
         self._input_data_size = 0
         if data:
@@ -45,6 +43,9 @@ class Model:
 
         self._trained = False
 
+    def sdv_model_constructor(self, arg_dict):
+        pass
+
     def _train(self, data: Optional[Data] = None):
         assert self._training_data is not None or data is not None
         if data is None:
@@ -52,7 +53,7 @@ class Model:
         if self._sdv_model is None:
             # create the SDV model just when we need it
             self._sdv_model = \
-                self._create_sdv_model(self.adapted_arguments(data))
+                self.sdv_model_constructor(self.adapted_arguments(data))
         self.sdv_model.fit(data.data)
         self._input_data_size = data.data.shape[0]
         self._trained = True
