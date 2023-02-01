@@ -1,6 +1,7 @@
 # ToDo: detailed class docstring for class Pipeline.
 """ASyH Pipeline base class"""
-import tempfile, os
+import tempfile
+import os
 
 from ASyH.data import Data
 from ASyH.model import Model

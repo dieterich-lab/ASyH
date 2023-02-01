@@ -5,10 +5,9 @@
 
 from datetime import datetime
 import os.path
-from typing import Optional, Callable, Any, Dict
+from typing import Optional, Any, Dict
 
 from pandas import DataFrame
-from sdv.tabular.base import BaseTabularModel
 
 from ASyH.data import Data
 
