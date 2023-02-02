@@ -46,8 +46,6 @@ class Data:
             # rounding the input to work around
             # https://github.com/sdv-dev/SDV/issues/1039
             data = pandas.read_excel(input_file).round(decimals=14)
-            # the data contains a spurious index column when saved from pandas!
-            data = data.drop(data.columns[0], axis=1)
         elif c.match(filetype):
             data = pandas.read_csv(input_file).round(decimals=14)
         else:
@@ -78,6 +76,6 @@ class SyntheticData(Data):
         """
         x = re.compile(".xls.?")
         if x.search(outputfile):
-            self._data.to_excel(outputfile)
+            self._data.to_excel(outputfile, index=False)
         else:
-            self._data.to_csv(outputfile)
+            self._data.to_csv(outputfile, index=False)
