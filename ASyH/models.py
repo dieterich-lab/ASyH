@@ -13,11 +13,9 @@ from ASyH.model import Model
 class TVAEModel(Model):
     '''Specific ASyH Model for SDV\'s TVAE model.'''
 
-    def sdv_model_constructor(self, arg_dict):
-        return sdv.tabular.TVAE(**arg_dict)
-
     def __init__(self, data: Optional[Data] = None):
-        Model.__init__(self, model_type='TVAE',
+        Model.__init__(self,
+                       sdv_model_class=sdv.tabular.TVAE,
                        data=data)
 
     def adapted_arguments(self, data: Optional[Data] = None) -> Dict[str, Any]:
@@ -26,7 +24,7 @@ class TVAEModel(Model):
         data.
         The method returns a dict of keyword arguments to be passed to the
         specific SDV model constructor with the ** operator:
-        sdv_constructor(**adapt_arguments(data)) => adapted SDV model'''
+        sdv_model_class(**adapt_arguments(data)) => adapted SDV model'''
 
         data_size = len(data.data.columns)
         dim = 2*data_size
@@ -44,11 +42,9 @@ def _get_field_types_from_data(data):
 class CTGANModel(Model):
     '''Specific ASyH Model for SDV\'s CTGAN model.'''
 
-    def sdv_model_constructor(self, arg_dict):
-        return sdv.tabular.CTGAN(**arg_dict)
-
     def __init__(self, data: Optional[Data] = None):
-        Model.__init__(self, model_type='CTGAN',
+        Model.__init__(self,
+                       sdv_model_class=sdv.tabular.CTGAN,
                        data=data)
 
     def adapted_arguments(self, data: Optional[Data] = None) -> Dict[str, Any]:
@@ -57,7 +53,7 @@ class CTGANModel(Model):
         input data.
         The method returns a dict of keyword arguments to be passed to the
         specific SDV model constructor with the ** operator:
-        sdv_constructor(**adapt_arguments(data)) => adapted SDV model'''
+        sdv_model_class(**adapt_arguments(data)) => adapted SDV model'''
         data_size = len(data.data.columns)
         dim = 4*data_size
         hidden_layer_dims = (dim, dim)
@@ -69,11 +65,9 @@ class CTGANModel(Model):
 class CopulaGANModel(Model):
     '''Specific ASyH Model for SDV\'s CopulaGAN model.'''
 
-    def sdv_model_constructor(self, arg_dict):
-        return sdv.tabular.copulagan.CopulaGAN(**arg_dict)
-
     def __init__(self, data: Optional[Data] = None):
-        Model.__init__(self, model_type='CopulaGAN',
+        Model.__init__(self,
+                       sdv_model_class=sdv.tabular.copulagan.CopulaGAN,
                        data=data)
 
     def adapted_arguments(self, data: Optional[Data] = None) -> Dict[str, Any]:
@@ -82,7 +76,7 @@ class CopulaGANModel(Model):
         input data.
         The method returns a dict of keyword arguments to be passed to the
         specific SDV model constructor with the ** operator:
-        sdv_constructor(**adapt_arguments(data)) => adapted SDV model'''
+        sdv_model_class(**adapt_arguments(data)) => adapted SDV model'''
         data_size = len(data.data.columns)
         dim = 4*data_size
         hidden_layer_dims = (dim, dim)
@@ -94,11 +88,9 @@ class CopulaGANModel(Model):
 class GaussianCopulaModel(Model):
     '''Specific ASyH Model for SDV\'s GaussianCopula model.'''
 
-    def sdv_model_constructor(self, arg_dict):
-        return sdv.tabular.copulas.GaussianCopula(**arg_dict)
-
     def __init__(self, data: Optional[Data] = None):
-        Model.__init__(self, model_type='GaussianCopula',
+        Model.__init__(self,
+                       sdv_model_class=sdv.tabular.copulas.GaussianCopula,
                        data=data)
 
     def adapted_arguments(self, data: Optional[Data] = None) -> Dict[str, Any]:

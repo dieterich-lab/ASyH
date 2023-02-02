@@ -5,9 +5,10 @@
 
 from datetime import datetime
 import os.path
-from typing import Optional, Any, Dict
+from typing import Optional, Callable, Any, Dict
 
 from pandas import DataFrame
+from sdv.tabular.base import BaseTabularModel
 
 from ASyH.data import Data
 
@@ -25,11 +26,12 @@ class Model:
 
     def __init__(
             self,
-            model_type: Optional[str] = None,
+            sdv_model_class: Optional[Callable[...,BaseTabularModel]] = None,
             data: Optional[Data] = None
     ):
         self._sdv_model = None
-        self._model_type = model_type
+        self._sdv_model_class = sdv_model_class
+        self._model_type = sdv_model_class.__name__
 
         self._input_data_size = 0
         if data:
@@ -42,9 +44,6 @@ class Model:
 
         self._trained = False
 
-    def sdv_model_constructor(self, arg_dict):
-        pass
-
     def _train(self, data: Optional[Data] = None):
         assert self._training_data is not None or data is not None
         if data is None:
@@ -52,7 +51,7 @@ class Model:
         if self._sdv_model is None:
             # create the SDV model just when we need it
             self._sdv_model = \
-                self.sdv_model_constructor(self.adapted_arguments(data))
+                self._sdv_model_class(**self.adapted_arguments(data))
         self.sdv_model.fit(data.data)
         self._input_data_size = data.data.shape[0]
         self._trained = True
