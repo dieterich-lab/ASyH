@@ -26,7 +26,7 @@ class Model:
 
     def __init__(
             self,
-            sdv_model_class: Optional[Callable[...,BaseTabularModel]] = None,
+            sdv_model_class: Optional[Callable[..., BaseTabularModel]] = None,
             data: Optional[Data] = None
     ):
         self._sdv_model = None
@@ -52,7 +52,7 @@ class Model:
             # create the SDV model just when we need it
             self._sdv_model = \
                 self._sdv_model_class(**self.adapted_arguments(data))
-        self.sdv_model.fit(data.data)
+        self._sdv_model.fit(data.data)
         self._input_data_size = data.data.shape[0]
         self._trained = True
 
