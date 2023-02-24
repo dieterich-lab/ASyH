@@ -9,6 +9,8 @@ dependencies = [
     'openpyxl',
     'python-magic',
     'gower',
+    'kaleido',
+    'jinja2',
 ]
 
 [tool.setuptools.packages.find]
