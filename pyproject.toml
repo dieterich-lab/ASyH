@@ -5,12 +5,12 @@ requires = ['setuptools', 'wheel']
 name = 'ASyH'
 version = '0.0.1'
 dependencies = [
-    'sdv',
-    'openpyxl',
-    'python-magic',
-    'gower',
-    'kaleido',
-    'jinja2',
+    'sdv == 0.18.0',
+    'openpyxl == 3.1.1',
+    'python-magic == 0.4.27',
+    'gower == 0.1.2',
+    'kaleido == 0.2.1',
+    'jinja2 == 3.1.2',
 ]
 
 [tool.setuptools.packages.find]
