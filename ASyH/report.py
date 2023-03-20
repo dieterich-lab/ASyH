@@ -130,9 +130,9 @@ def create_report_documents(report_document,
 
 ## Distribution and Correlation Similarities
 
-![Column pair trends and column corellation comparison.]({{ column_pair_trends }})
-
 ![Column distribution similarity comparison.]({{ column_shapes }})
+
+![Column pair trends and column correlation comparison.]({{ column_pair_trends }})
 
 ## Per-Column comparisons:
 
