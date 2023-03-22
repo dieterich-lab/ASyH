@@ -17,7 +17,8 @@
     "BLOODPRESSURE_DIASTOLIC_MEAN": {"type": "numerical", "subtype": "float"},
     "BLOODPRESSURE_SISTOLIC_MEAN": {"type": "numerical", "subtype": "float"},
     "ICU": {"type": "categorical"}
-   }
+   },
+   "primary_key": "PATIENT_VISIT_IDENTIFIER"
   }
  }
 }
