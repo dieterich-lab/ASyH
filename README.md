@@ -17,8 +17,7 @@ asyh = ASyH.Application()
 synthetic_data = asyh.synthesize('original_data.csv', metadata_file='metadata.json')
 
 # write the synthetic dataset to CSV file:
-with open('synthetic_data.csv', 'w', encoding='utf-8') as output_file:
-    synthetic_data.to_csv(output_file)
+synthetic_data.to_csv(output_file, index=False)
 ```
 Alternatively, you can specify an Excel file as first argument to `asyh.synthesize(.,.)`
 
@@ -72,7 +71,7 @@ or
 
 where `FIELD_NAME` is a field's (or data column's) name and `FIELD_TYPE` is on of `(numerical, datetime, categorical, boolean, id)`.  In the case of a `FIELD_TYPE` of `numerical`, the `SUBTYPE` should be specified as either `integer` or `float`.  For a `FIELD_TYPE` of `id` the `SUBTYPE` should be set to either `string` or `integer` according to the `FIELD_TYPE`'s format.
 
-In case 'table metadata' is needed is required as argument (as to the `ASyH.report(...)` function), the data within the "tables"/"TABLE_NAME" hierarchy is to be used, i.e. when having read the metadata file into a dict `metadata`, use <nobr>`metadata['tables']['TABLE_NAME']`</nobr>, replacing `TABLE_NAME` with the actual name.
+In case 'table metadata' is required as argument (as to the `ASyH.report(...)` function), the data within the "tables"/"TABLE_NAME" hierarchy is to be used, i.e. when having read the metadata file into a dict `metadata`, use <nobr>`metadata['tables']['TABLE_NAME']`</nobr>, replacing `TABLE_NAME` with the actual name.
 
 ## Development
 
