@@ -8,7 +8,7 @@ import os.path
 from typing import Optional, Callable, Any, Dict
 
 from pandas import DataFrame
-from sdv.tabular.base import BaseTabularModel
+from sdv.single_table.base import BaseSingleTableSynthesizer
 
 from ASyH.data import Data
 
@@ -26,7 +26,7 @@ class Model:
 
     def __init__(
             self,
-            sdv_model_class: Optional[Callable[..., BaseTabularModel]] = None,
+            sdv_model_class: Optional[Callable[..., BaseSingleTableSynthesizer]] = None,
             data: Optional[Data] = None
     ):
         self._sdv_model = None

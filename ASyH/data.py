@@ -14,6 +14,8 @@ import magic
 import pandas
 from pandas import DataFrame
 
+from sdv.metadata import SingleTableMetadata
+
 from ASyH.metadata import Metadata
 
 from ASyH.dataerror import DataError
@@ -30,6 +32,10 @@ class Data:
     @property
     def metadata(self) -> Metadata:
         return self._metadata
+
+    @property
+    def sdv_metadata(self) -> SingleTableMetadata:
+        return SingleTableMetadata.load_from_dict(self._metadata.metadata)
 
     def __init__(self, data: Optional[DataFrame] = None, metadata: Optional[Metadata] = None):
         self._data = data

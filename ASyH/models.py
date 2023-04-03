@@ -15,7 +15,7 @@ class TVAEModel(Model):
 
     def __init__(self, data: Optional[Data] = None):
         Model.__init__(self,
-                       sdv_model_class=sdv.tabular.TVAE,
+                       sdv_model_class=sdv.single_table.TVAESynthesizer,
                        data=data)
 
     def adapted_arguments(self, data: Optional[Data] = None) -> Dict[str, Any]:
@@ -29,14 +29,14 @@ class TVAEModel(Model):
         data_size = len(data.data.columns)
         dim = 2*data_size
         hidden_layer_dims = (dim, dim)
-        return {'field_types': _get_field_types_from_data(data),
+        return {'metadata': _get_metadata_from_data(data),
                 'compress_dims': hidden_layer_dims,
                 'decompress_dims': hidden_layer_dims,
                 'embedding_dim': dim}
 
 
-def _get_field_types_from_data(data):
-    return None if data.metadata is None else data.metadata.metadata
+def _get_metadata_from_data(data):
+    return None if data.metadata is None else data.sdv_metadata
 
 
 class CTGANModel(Model):
@@ -44,7 +44,7 @@ class CTGANModel(Model):
 
     def __init__(self, data: Optional[Data] = None):
         Model.__init__(self,
-                       sdv_model_class=sdv.tabular.CTGAN,
+                       sdv_model_class=sdv.single_table.CTGANSynthesizer,
                        data=data)
 
     def adapted_arguments(self, data: Optional[Data] = None) -> Dict[str, Any]:
@@ -57,7 +57,7 @@ class CTGANModel(Model):
         data_size = len(data.data.columns)
         dim = 4*data_size
         hidden_layer_dims = (dim, dim)
-        return {'field_types': _get_field_types_from_data(data),
+        return {'metadata': _get_metadata_from_data(data),
                 'generator_dim': hidden_layer_dims,
                 'discriminator_dim': hidden_layer_dims}
 
@@ -67,7 +67,7 @@ class CopulaGANModel(Model):
 
     def __init__(self, data: Optional[Data] = None):
         Model.__init__(self,
-                       sdv_model_class=sdv.tabular.copulagan.CopulaGAN,
+                       sdv_model_class=sdv.single_table.copulagan.CopulaGANSynthesizer,
                        data=data)
 
     def adapted_arguments(self, data: Optional[Data] = None) -> Dict[str, Any]:
@@ -80,7 +80,7 @@ class CopulaGANModel(Model):
         data_size = len(data.data.columns)
         dim = 4*data_size
         hidden_layer_dims = (dim, dim)
-        return {'field_types': _get_field_types_from_data(data),
+        return {'metadata': _get_metadata_from_data(data),
                 'generator_dim': hidden_layer_dims,
                 'discriminator_dim': hidden_layer_dims}
 
@@ -90,9 +90,9 @@ class GaussianCopulaModel(Model):
 
     def __init__(self, data: Optional[Data] = None):
         Model.__init__(self,
-                       sdv_model_class=sdv.tabular.copulas.GaussianCopula,
+                       sdv_model_class=sdv.single_table.copulas.GaussianCopulaSynthesizer,
                        data=data)
 
     def adapted_arguments(self, data: Optional[Data] = None) -> Dict[str, Any]:
         '''Method to adapt the Gaussian Copula sdv model internals to data'''
-        return {'field_types': _get_field_types_from_data(data)}
+        return {'metadata': _get_metadata_from_data(data)}
