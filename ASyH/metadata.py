@@ -19,6 +19,7 @@ class Metadata:
         return
 
     @property
+    # ToDo: no need to dive into tables...
     def fields(self):
         'Property method for retrieving the \'fields\' entry in the metadata.'
         if self._tablename is None:
@@ -26,6 +27,8 @@ class Metadata:
         return self.metadata['tables'][self._tablename]['fields']
 
     @property
+    # ToDo: obsolete, sdv 1.0.0 single table metadata api doesn't require any
+    # hierarchy above 'columns'
     def table(self):
         'Property method for retrieving the (zeroth) \'tables\' entry in the metadata.'
         if self._tablename is None:
@@ -39,7 +42,8 @@ class Metadata:
                 self.metadata = json.load(f)
         else:
             raise FileNotFoundError
-        self._tablename = self._get_tablename(self.metadata)
+        # ._tablename is obsolete
+        # self._tablename = self._get_tablename(self.metadata)
 
     def save(self, out_filename: str):
         '''Save the metadata dict to json file.'''
@@ -59,6 +63,7 @@ class Metadata:
     def __init__(self,
                  metadata: Optional[Dict[str, Any]] = None,
                  data: Optional[DataFrame] = None):
+        # ToDo: (branch sdv-1.0.0) use autodetect!
         # If both metadata and data are specified, metadata is used.
 
         # If only a dataframe is given, there is no way to determine a table
@@ -75,7 +80,8 @@ class Metadata:
         self._tablename = self._get_tablename(self.metadata)
 
     def _infer(self, data_column):
-        # ToDo!
+        # ToDo: as of sdv 1.0.0 sdv.metadata.SingleTableMetadata has
+        # a method named detect_from_dataframe(.)
         # for now, just return the dtype
         return data_column.dtype
 
