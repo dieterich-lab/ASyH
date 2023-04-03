@@ -1,24 +1,19 @@
-{"tables":
- {"data":
-  {"fields":
-   {"PATIENT_VISIT_IDENTIFIER": {"type": "id", "subtype": "integer"},
-    "AGE_ABOVE65": {"type": "categorical"},
-    "AGE_PERCENTIL": {"type": "categorical"},
-    "GENDER": {"type": "categorical"},
-    "DISEASE GROUPING 1": {"type": "categorical"},
-    "DISEASE GROUPING 2": {"type": "categorical"},
-    "DISEASE GROUPING 3": {"type": "categorical"},
-    "DISEASE GROUPING 4": {"type": "categorical"},
-    "DISEASE GROUPING 5": {"type": "categorical"},
-    "DISEASE GROUPING 6": {"type": "categorical"},
-    "HTN": {"type": "categorical"},
-    "IMMUNOCOMPROMISED": {"type": "categorical"},
-    "OTHER": {"type": "categorical"},
-    "BLOODPRESSURE_DIASTOLIC_MEAN": {"type": "numerical", "subtype": "float"},
-    "BLOODPRESSURE_SISTOLIC_MEAN": {"type": "numerical", "subtype": "float"},
-    "ICU": {"type": "categorical"}
-   },
-   "primary_key": "PATIENT_VISIT_IDENTIFIER"
-  }
+{"columns":
+ {"PATIENT_VISIT_IDENTIFIER": {"sdtype": "id", "regex_format": "[0-9]*"},
+  "AGE_ABOVE65": {"sdtype": "categorical"},
+  "AGE_PERCENTIL": {"sdtype": "categorical"},
+  "GENDER": {"sdtype": "categorical"},
+  "DISEASE GROUPING 1": {"sdtype": "categorical"},
+  "DISEASE GROUPING 2": {"sdtype": "categorical"},
+  "DISEASE GROUPING 3": {"sdtype": "categorical"},
+  "DISEASE GROUPING 4": {"sdtype": "categorical"},
+  "DISEASE GROUPING 5": {"sdtype": "categorical"},
+  "DISEASE GROUPING 6": {"sdtype": "categorical"},
+  "HTN": {"sdtype": "categorical"},
+  "IMMUNOCOMPROMISED": {"sdtype": "categorical"},
+  "OTHER": {"sdtype": "categorical"},
+  "BLOODPRESSURE_DIASTOLIC_MEAN": {"sdtype": "numerical", "computer_representation": "Float"},
+  "BLOODPRESSURE_SISTOLIC_MEAN": {"sdtype": "numerical", "computer_representation": "Float"},
+  "ICU": {"sdtype": "categorical"}
  }
 }
