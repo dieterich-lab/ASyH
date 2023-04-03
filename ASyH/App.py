@@ -1,7 +1,8 @@
 '''Define the standard application of ASyH.'''
 import pathlib
 
-from sdv.metrics.tabular import KSComplement, CSTest, CorrelationSimilarity
+import sdmetrics.reports.single_table
+# from sdv.metrics.tabular import KSComplement, CSTest, CorrelationSimilarity
 
 from ASyH.data import Data
 from ASyH.metadata import Metadata
@@ -10,8 +11,8 @@ from ASyH.pipelines \
     CTGANPipeline, GaussianCopulaPipeline
 from ASyH.dispatch import concurrent_dispatch
 
-import ASyH.metrics.anonymity
-import ASyH.metrics
+# import ASyH.metrics.anonymity
+# import ASyH.metrics
 
 
 class Application:
@@ -89,18 +90,27 @@ class Application:
                      CopulaGANPipeline(input_data),
                      GaussianCopulaPipeline(input_data)]
 
+        def sdmetrics_quality(input_data, synth_data):
+            report = sdmetrics.reports.single_table.QualityReport()
+            report.generate(input_data.data,
+                            synth_data.data,
+                            input_data.metadata.metadata,
+                            verbose=False)
+            return report.get_score()
+
+        self._add_scoring(sdmetrics_quality, pipelines=pipelines)
         # self._add_scoring(ASyH.metrics.anonymity.maximum_cosine_similarity,
         #                  pipelines=pipelines)
-        sdv_kscomplement = \
-            ASyH.metrics.adapt_sdv_metric(KSComplement)
-        self._add_scoring(sdv_kscomplement, pipelines=pipelines)
-        sdv_cstest = \
-            ASyH.metrics.adapt_sdv_metric(CSTest)
-        self._add_scoring(sdv_cstest, pipelines=pipelines)
+        # sdv_kscomplement = \
+        #     ASyH.metrics.adapt_sdv_metric(KSComplement)
+        # self._add_scoring(sdv_kscomplement, pipelines=pipelines)
+        # sdv_cstest = \
+        #     ASyH.metrics.adapt_sdv_metric(CSTest)
+        # self._add_scoring(sdv_cstest, pipelines=pipelines)
 
-        sdv_correlation_similarity = \
-            ASyH.metrics.adapt_sdv_metric_normalized(CorrelationSimilarity)
-        self._add_scoring(sdv_correlation_similarity, pipelines=pipelines)
+        # sdv_correlation_similarity = \
+        #     ASyH.metrics.adapt_sdv_metric_normalized(CorrelationSimilarity)
+        # self._add_scoring(sdv_correlation_similarity, pipelines=pipelines)
 
         # sdv_ML_peformance_logistic_regression = \
         #     ASyH.metrics.adapt_sdv_metric_normalized(BinaryLogisticRegression)
