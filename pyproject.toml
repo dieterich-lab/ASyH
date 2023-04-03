@@ -5,7 +5,7 @@ requires = ['setuptools', 'wheel']
 name = 'ASyH'
 version = '0.0.1'
 dependencies = [
-    'sdv == 0.18.0',
+    'sdv == 1.0.0',
     'openpyxl == 3.1.1',
     'python-magic == 0.4.27',
     'gower == 0.1.2',
