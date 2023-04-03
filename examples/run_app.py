@@ -37,4 +37,4 @@ if __name__ == '__main__':
                 asyh.model.model_type,
                 real_data,
                 synth,
-                metadata['tables']['data'])
+                metadata)
