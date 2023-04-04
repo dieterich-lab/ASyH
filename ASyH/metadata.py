@@ -70,14 +70,9 @@ class Metadata:
         # name, so we set it ourselves to 'data':
         self._tablename = None
         if metadata is None and data is not None:
-            metadata = {'tables':
-                        {'data':
-                         {'fields':
-                          data.dtypes.to_dict()}
-                         }
-                        }
+            metadata = {'columns': data.dtypes.to_dict()}
         self.metadata = metadata
-        self._tablename = self._get_tablename(self.metadata)
+        # self._tablename = self._get_tablename(self.metadata)
 
     def _infer(self, data_column):
         # ToDo: as of sdv 1.0.0 sdv.metadata.SingleTableMetadata has
@@ -89,6 +84,7 @@ class Metadata:
         meta = {x: self._infer(data_frame[x]) for x in data_frame.columns}
         return meta
 
+    # obsolete
     def _validate_metadata(self, metadata: Dict[str, Any]):
         if 'tables' not in metadata.keys():
             raise DataError('Metadata malformed: no \'tables\' entry in outermost scope.')
@@ -97,6 +93,7 @@ class Metadata:
             Warning('Metadate describes a multitable dataset. ASyH works only \
             with single table datasets.\n Using table' + list(metadata['tables'].keys())[0])
 
+    # obsolete
     def _get_tablename(self, metadata):
         if metadata is None:
             return None
