@@ -93,7 +93,7 @@ def create_images(report,
         columns = [k for k in columns
                    if k != table_metadata['primary_key']]
     columns = [k for k in columns
-               if columns[k]['sdtype'] != 'id']
+               if table_metadata['columns'][k]['sdtype'] != 'id']
 
     for column in columns:
         fig = sdmetrics.reports.utils.get_column_plot(
