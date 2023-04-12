@@ -95,4 +95,5 @@ class GaussianCopulaModel(Model):
 
     def adapted_arguments(self, data: Optional[Data] = None) -> Dict[str, Any]:
         '''Method to adapt the Gaussian Copula sdv model internals to data'''
-        return {'metadata': _get_metadata_from_data(data)}
+        return {'metadata': _get_metadata_from_data(data),
+                'default_distribution': 'truncnorm'}
