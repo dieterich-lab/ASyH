@@ -1,6 +1,8 @@
 '''ASyH Concrete Model-Derived Classes'''
 from typing import Optional, Dict, Any
 
+import rdt
+
 #
 # ToDos:
 #   Implement adapt() for models to tune the model internals to the data.
@@ -91,9 +93,12 @@ class CopulaGANModel(Model):
 class GaussianCopulaModel(Model):
     '''Specific ASyH Model for SDV\'s GaussianCopula model.'''
 
+    class Regressed_GaussianCopulaSynthesizer(sdv.single_table.copulas.GaussianCopulaSynthesizer):
+        _model_sdtype_transformers = {'categorical': rdt.transformers.FrequencyEncoder(add_noise=True)}
+
     def __init__(self, data: Optional[Data] = None, override_args=False):
         Model.__init__(self,
-                       sdv_model_class=sdv.single_table.copulas.GaussianCopulaSynthesizer,
+                       sdv_model_class=self.Regressed_GaussianCopulaSynthesizer,
                        data=data,
                        override_args=override_args)
 
