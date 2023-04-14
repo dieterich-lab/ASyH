@@ -19,10 +19,15 @@ def report(dataset_name,
            sd_model_name,
            input_data,
            synthetic_data,
-           metadata):
+           metadata,
+           details=False):
 
     sdmetrics_report = sdmetrics.reports.single_table.QualityReport()
     sdmetrics_report.generate(input_data, synthetic_data, metadata)
+
+    detailed_scores = None
+    if details:
+        detailed_scores = sdmetrics_report.get_details(property_name='Column Shapes')
 
     quality_score = sdmetrics_report.get_score() * 100
     props = sdmetrics_report.get_properties()
@@ -55,6 +60,11 @@ def report(dataset_name,
                                         column_shapes_score,
                                         column_pair_trends_score,
                                         images)
+
+    if detailed_scores is not None:
+        details_doc = f'{pathlib.Path(report_document).with_suffix("")}-detailed_scores.csv'
+        detailed_scores.to_csv(details_doc)
+        documents.append(details_doc)
 
     # zip the whole thing to be able to transfer the aggregated comparative
     # data.  Still have to make sure the report pickle does not contain the
