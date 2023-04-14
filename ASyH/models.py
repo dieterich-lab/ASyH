@@ -15,7 +15,7 @@ from ASyH.model import Model
 class TVAEModel(Model):
     '''Specific ASyH Model for SDV\'s TVAE model.'''
 
-    def __init__(self, data: Optional[Data] = None, override_args=False):
+    def __init__(self, data: Optional[Data] = None, override_args=None):
         Model.__init__(self,
                        sdv_model_class=sdv.single_table.TVAESynthesizer,
                        data=data,
@@ -45,7 +45,7 @@ def _get_metadata_from_data(data):
 class CTGANModel(Model):
     '''Specific ASyH Model for SDV\'s CTGAN model.'''
 
-    def __init__(self, data: Optional[Data] = None, override_args=False):
+    def __init__(self, data: Optional[Data] = None, override_args=None):
         Model.__init__(self,
                        sdv_model_class=sdv.single_table.CTGANSynthesizer,
                        data=data,
@@ -69,7 +69,7 @@ class CTGANModel(Model):
 class CopulaGANModel(Model):
     '''Specific ASyH Model for SDV\'s CopulaGAN model.'''
 
-    def __init__(self, data: Optional[Data] = None, override_args=False):
+    def __init__(self, data: Optional[Data] = None, override_args=None):
         Model.__init__(self,
                        sdv_model_class=sdv.single_table.copulagan.CopulaGANSynthesizer,
                        data=data,
@@ -96,7 +96,7 @@ class GaussianCopulaModel(Model):
     class Regressed_GaussianCopulaSynthesizer(sdv.single_table.copulas.GaussianCopulaSynthesizer):
         _model_sdtype_transformers = {'categorical': rdt.transformers.FrequencyEncoder(add_noise=True)}
 
-    def __init__(self, data: Optional[Data] = None, override_args=False):
+    def __init__(self, data: Optional[Data] = None, override_args=None):
         Model.__init__(self,
                        sdv_model_class=self.Regressed_GaussianCopulaSynthesizer,
                        data=data,
