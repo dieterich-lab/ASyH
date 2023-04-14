@@ -101,6 +101,7 @@ class GaussianCopulaModel(Model):
                        sdv_model_class=self.Regressed_GaussianCopulaSynthesizer,
                        data=data,
                        override_args=override_args)
+        self._model_type = 'GaussianCopulaSynthesizer'
 
     def adapted_arguments(self, data: Optional[Data] = None) -> Dict[str, Any]:
         '''Method to adapt the Gaussian Copula sdv model internals to data'''
