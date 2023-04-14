@@ -27,11 +27,13 @@ class Model:
     def __init__(
             self,
             sdv_model_class: Optional[Callable[..., BaseSingleTableSynthesizer]] = None,
-            data: Optional[Data] = None
+            data: Optional[Data] = None,
+            override_args: Optional[Dict[str, Any]] = None
     ):
         self._sdv_model = None
         self._sdv_model_class = sdv_model_class
         self._model_type = sdv_model_class.__name__
+        self._override_args = override_args
 
         self._input_data_size = 0
         if data:
@@ -50,8 +52,11 @@ class Model:
             data = self._training_data
         if self._sdv_model is None:
             # create the SDV model just when we need it
+            args = self.adapted_arguments(data)
+            if self._override_args is not None:
+                args.update(self._override_args)
             self._sdv_model = \
-                self._sdv_model_class(**self.adapted_arguments(data))
+                self._sdv_model_class(**args)
         self._sdv_model.fit(data.data)
         self._input_data_size = data.data.shape[0]
         self._trained = True

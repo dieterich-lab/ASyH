@@ -13,10 +13,11 @@ from ASyH.model import Model
 class TVAEModel(Model):
     '''Specific ASyH Model for SDV\'s TVAE model.'''
 
-    def __init__(self, data: Optional[Data] = None):
+    def __init__(self, data: Optional[Data] = None, override_args=False):
         Model.__init__(self,
                        sdv_model_class=sdv.single_table.TVAESynthesizer,
-                       data=data)
+                       data=data,
+                       override_args=override_args)
 
     def adapted_arguments(self, data: Optional[Data] = None) -> Dict[str, Any]:
         '''Create SDV model specific argument dict to pass to the constructor.
@@ -42,10 +43,11 @@ def _get_metadata_from_data(data):
 class CTGANModel(Model):
     '''Specific ASyH Model for SDV\'s CTGAN model.'''
 
-    def __init__(self, data: Optional[Data] = None):
+    def __init__(self, data: Optional[Data] = None, override_args=False):
         Model.__init__(self,
                        sdv_model_class=sdv.single_table.CTGANSynthesizer,
-                       data=data)
+                       data=data,
+                       override_args=override_args)
 
     def adapted_arguments(self, data: Optional[Data] = None) -> Dict[str, Any]:
         '''Create SDV model specific argument dict to pass to the constructor.
@@ -65,10 +67,11 @@ class CTGANModel(Model):
 class CopulaGANModel(Model):
     '''Specific ASyH Model for SDV\'s CopulaGAN model.'''
 
-    def __init__(self, data: Optional[Data] = None):
+    def __init__(self, data: Optional[Data] = None, override_args=False):
         Model.__init__(self,
                        sdv_model_class=sdv.single_table.copulagan.CopulaGANSynthesizer,
-                       data=data)
+                       data=data,
+                       override_args=override_args)
 
     def adapted_arguments(self, data: Optional[Data] = None) -> Dict[str, Any]:
         '''Create SDV model specific argument dict to pass to the constructor.
@@ -88,10 +91,11 @@ class CopulaGANModel(Model):
 class GaussianCopulaModel(Model):
     '''Specific ASyH Model for SDV\'s GaussianCopula model.'''
 
-    def __init__(self, data: Optional[Data] = None):
+    def __init__(self, data: Optional[Data] = None, override_args=False):
         Model.__init__(self,
                        sdv_model_class=sdv.single_table.copulas.GaussianCopulaSynthesizer,
-                       data=data)
+                       data=data,
+                       override_args=override_args)
 
     def adapted_arguments(self, data: Optional[Data] = None) -> Dict[str, Any]:
         '''Method to adapt the Gaussian Copula sdv model internals to data'''
