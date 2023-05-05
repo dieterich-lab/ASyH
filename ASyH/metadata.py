@@ -19,21 +19,9 @@ class Metadata:
         return
 
     @property
-    # ToDo: no need to dive into tables...
-    def fields(self):
-        'Property method for retrieving the \'fields\' entry in the metadata.'
-        if self._tablename is None:
-            return None
-        return self.metadata['tables'][self._tablename]['fields']
-
-    @property
-    # ToDo: obsolete, sdv 1.0.0 single table metadata api doesn't require any
-    # hierarchy above 'columns'
-    def table(self):
-        'Property method for retrieving the (zeroth) \'tables\' entry in the metadata.'
-        if self._tablename is None:
-            return None
-        return self.metadata['tables'][self._tablename]
+    def columns(self):
+        'Property method for retrieving the \'columns\' entry in the metadata.'
+        return self.metadata['columns']
 
     def read(self, filename: Union[str, pathlib.Path]):
         '''Read the metadata from file into the metadata dict.'''
@@ -42,8 +30,6 @@ class Metadata:
                 self.metadata = json.load(f)
         else:
             raise FileNotFoundError
-        # ._tablename is obsolete
-        # self._tablename = self._get_tablename(self.metadata)
 
     def save(self, out_filename: str):
         '''Save the metadata dict to json file.'''
@@ -54,11 +40,10 @@ class Metadata:
     def variables_by_type(self, type_string):
         '''Filter the dataset's variables by the string in their type
         information.'''
-        assert self._tablename is not None
-        field_types = self.fields
+        columns = self.columns
         return [key  # the key, i.e. variable name
-                for key, typeinfo in field_types.items()
-                if typeinfo['type'] == type_string]
+                for key, typeinfo in columns.items()
+                if typeinfo['sdtype'] == type_string]
 
     def __init__(self,
                  metadata: Optional[Dict[str, Any]] = None,
@@ -66,13 +51,9 @@ class Metadata:
         # ToDo: (branch sdv-1.0.0) use autodetect!
         # If both metadata and data are specified, metadata is used.
 
-        # If only a dataframe is given, there is no way to determine a table
-        # name, so we set it ourselves to 'data':
-        self._tablename = None
         if metadata is None and data is not None:
             metadata = {'columns': data.dtypes.to_dict()}
         self.metadata = metadata
-        # self._tablename = self._get_tablename(self.metadata)
 
     def _infer(self, data_column):
         # ToDo: as of sdv 1.0.0 sdv.metadata.SingleTableMetadata has
@@ -83,20 +64,3 @@ class Metadata:
     def _infer_metadata(self, data_frame):
         meta = {x: self._infer(data_frame[x]) for x in data_frame.columns}
         return meta
-
-    # obsolete
-    def _validate_metadata(self, metadata: Dict[str, Any]):
-        if 'tables' not in metadata.keys():
-            raise DataError('Metadata malformed: no \'tables\' entry in outermost scope.')
-
-        if len(metadata['tables']) > 1:
-            Warning('Metadate describes a multitable dataset. ASyH works only \
-            with single table datasets.\n Using table' + list(metadata['tables'].keys())[0])
-
-    # obsolete
-    def _get_tablename(self, metadata):
-        if metadata is None:
-            return None
-        self._validate_metadata(metadata)
-        tablename = list(metadata['tables'].keys())[0]
-        return tablename
