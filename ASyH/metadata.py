@@ -5,8 +5,7 @@ import json
 from typing import Optional, Union, Dict, Any
 
 from pandas import DataFrame
-
-from ASyH.dataerror import DataError
+from sdv.metadata.single_table import SingleTableMetadata
 
 
 class Metadata:
@@ -50,19 +49,10 @@ class Metadata:
     def __init__(self,
                  metadata: Optional[Dict[str, Any]] = None,
                  data: Optional[DataFrame] = None):
-        # ToDo: (branch sdv-1.0.0) use autodetect!
         # If both metadata and data are specified, metadata is used.
-
+        the_metadata = metadata
         if metadata is None and data is not None:
-            metadata = {'columns': data.dtypes.to_dict()}
-        self.metadata = metadata
-
-    def _infer(self, data_column):
-        # ToDo: as of sdv 1.0.0 sdv.metadata.SingleTableMetadata has
-        # a method named detect_from_dataframe(.)
-        # for now, just return the dtype
-        return data_column.dtype
-
-    def _infer_metadata(self, data_frame):
-        meta = {x: self._infer(data_frame[x]) for x in data_frame.columns}
-        return meta
+            dummy = SingleTableMetadata()
+            dummy.detect_from_dataframe(data)
+            the_metadata = dummy.to_dict()
+        self.metadata = the_metadata
