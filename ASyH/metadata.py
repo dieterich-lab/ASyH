@@ -21,6 +21,8 @@ class Metadata:
     @property
     def columns(self):
         'Property method for retrieving the \'columns\' entry in the metadata.'
+        if self.metadata is None:
+            return {}
         return self.metadata['columns']
 
     def read(self, filename: Union[str, pathlib.Path]):
