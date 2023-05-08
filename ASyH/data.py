@@ -38,6 +38,7 @@ class Data:
         return SingleTableMetadata.load_from_dict(self._metadata.metadata)
 
     def __init__(self, data: Optional[DataFrame] = None, metadata: Optional[Metadata] = None):
+        # should we not .copy() the dataframe?  atm we do not manipulate ._data.
         self._data = data
         self._metadata = metadata
 
@@ -49,11 +50,9 @@ class Data:
         x = re.compile(".*Excel.*")
         c = re.compile(".*CSV.*")
         if x.match(filetype):
-            # rounding the input to work around
-            # https://github.com/sdv-dev/SDV/issues/1039
-            data = pandas.read_excel(input_file).round(decimals=14)
+            data = pandas.read_excel(input_file)
         elif c.match(filetype):
-            data = pandas.read_csv(input_file).round(decimals=14)
+            data = pandas.read_csv(input_file)
         else:
             raise DataError("Cannot determine input file type: ")
         self._data = data
