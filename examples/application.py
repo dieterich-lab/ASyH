@@ -1,8 +1,10 @@
-from ASyH.data import Data
-from ASyH.metadata import Metadata
+'Example ASyH script to demonstrate building a customized pipeline with\
+ ASyH\'s low-level API'
+
+from ASyH import Data, Metadata, concurrent_dispatch
 from ASyH.pipelines import CopulaGANPipeline, TVAEPipeline
-from ASyH.dispatch import concurrent_dispatch
 from ASyH.metrics.bivariate_statistics import pc_comparison
+from ASyH.metrics.sdv_metrics import adapt_sdv_metric_normalized
 
 # source the real data
 input_data = Data()
@@ -12,9 +14,6 @@ metadata = Metadata()
 metadata.read('Kaggle_Sirio_Libanes-16features.json')
 
 input_data.set_metadata(metadata)
-
-# for now just use a dummy scoring method, which means, the return values
-# displayed below will both be 2
 
 # creating two models
 t = TVAEPipeline(input_data)
