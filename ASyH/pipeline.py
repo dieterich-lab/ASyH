@@ -7,6 +7,7 @@ from ASyH.data import Data
 from ASyH.model import Model
 from ASyH.abstract_pipeline import AbstractPipeline
 from ASyH.hook import ScoringHook
+from ASyH.utils import flatten_dict
 
 
 class Pipeline(AbstractPipeline):
@@ -35,7 +36,8 @@ class Pipeline(AbstractPipeline):
         print(f'{self.model.model_type} Scoring: {str(detailed_scores)}')
         # Assuming, the scoring functions are maximizing, nomalized, and
         # weighted equally:
-        return sum(detailed_scores.values()) / len(detailed_scores)
+        scores = flatten_dict(detailed_scores)
+        return sum(scores.values()) / len(scores)
 
 
 AbstractPipeline.register(Pipeline)
