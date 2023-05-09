@@ -16,7 +16,8 @@ def pairwise(func, dataframe, list_of_variables=None):
         first_data = numpy.array(dataframe.loc[:, first_var])
         for second_var in list_of_variables[i+1:]:
             second_data = numpy.array(dataframe.loc[:, second_var])
-            returnval[first_var, second_var] = func(first_data, second_data)
+            returnval[f'({first_var}, {second_var})'] \
+                = func(first_data, second_data)
     return returnval
 
 
