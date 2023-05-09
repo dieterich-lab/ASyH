@@ -8,7 +8,7 @@ For synthesis, metrics and quality assurance we will mainly use the [Synthetic D
 
 ## Usage
 
-The most basic use case for ASyH is to create an ASyH Application object and call synthesize() to get a synthetic dataset from the best-performing SDV model (one of CopulaGAN, CTGAN, GaussianCopula, or TVAE [cf. [the SDV documentation](https://sdv.dev/SDV/api_reference/tabular/index.html)]).  The input original dataset should be provided as a pandas DataFrame, the synthesized dataset is output as pandas DataFrame as well.  For identification of numerical and categorical variables, a metadata file in JSON format needs to be provided (see below).
+The most basic use case for ASyH is to create an ASyH Application object and call synthesize() to get a synthetic dataset from the best-performing SDV model/synthesizer (one of CopulaGAN, CTGAN, GaussianCopula, or TVAE [cf. [the SDV documentation](https://docs.sdv.dev/sdv/single-table-data/modeling/synthesizers)]).  The input original dataset should be provided as a pandas DataFrame, the synthesized dataset is output as pandas DataFrame as well.  For identification of numerical and categorical variables, a metadata file in JSON format needs to be provided (see below).
 
 ```python
 import ASyH
@@ -39,39 +39,43 @@ with open('metadata.json', 'r', encooding='utf-8') as md_file:
 #   report.pdf
 ASyH.report('report', asyh.model.model_type,
             original_data, synthetic_data,
-            metadata['tables']['data'])
+            metadata)
 ```
 
 you will find a zip archive with all images, the markdow file (if generated the PDF as well), and the synthetic data in a CSV file.  Mind that the above code assumes that the metadata specifies the table name as 'data'.
 
 ## Metadata format
 
-ASyH uses SDV's metadata format (cf. ['Metadata' in the SDV documentation](https://sdv.dev/SDV/developer_guides/sdv/metadata.html)).
+ASyH uses SDV's metadata format (cf. ['Metadata' in the SDV documentation](https://docs.sdv.dev/sdv/reference/metadata-spec/single-table-metadata-json)).
 
 The skeleton of the JSON file should look like the following
 ```JSON
-{"tables":
-    {"TABLE_NAME":
-        {"fields":
-            { ...field specifications...
-            },
-         "primary_key":...
-        }
-    }
+{"columns":
+    { ...column specifications...
+    },
+ "primary_key":...
 }
 ```
-Where `TABLE_NAME` should specify the table's name (this is only important for accessing the 'table metadata' in the corresponding python dict - metadata['tables']['TABLE_NAME']).  Specifying a `primary_key` is optional.
+Specifying a `primary_key` is optional.
 
-The `field specifications` are of the form
+The `column specifications` are of the form
 
-    "FIELD_NAME": {"type": "FIELD_TYPE"}
+    "COLUMN_NAME": {"sdtype": "COLUMN_TYPE"}
+
 or
 
-    "FIELD_NAME": {"type": "FIELD_TYPE", "subtype": "SUBTYPE"}
+    "COLUMN_NAME": {"sdtype": "COLUMN_TYPE", "SPECIFIER": SPECIFIER_VALUE}
 
-where `FIELD_NAME` is a field's (or data column's) name and `FIELD_TYPE` is on of `(numerical, datetime, categorical, boolean, id)`.  In the case of a `FIELD_TYPE` of `numerical`, the `SUBTYPE` should be specified as either `integer` or `float`.  For a `FIELD_TYPE` of `id` the `SUBTYPE` should be set to either `string` or `integer` according to the `FIELD_TYPE`'s format.
+where `COLUMN_NAME` is a column variable's name and `COLUMN_TYPE` is on of `(numerical, datetime, categorical, boolean, id)`.  The `SPECIFIER`/`SPECIFIER_VALUE` pair to use depends on the `sdtype` of the variable, it does not apply to boolean and categorical variables, otherwise they are:
 
-In case 'table metadata' is required as argument (as to the `ASyH.report(...)` function), the data within the "tables"/"TABLE_NAME" hierarchy is to be used, i.e. when having read the metadata file into a dict `metadata`, use <nobr>`metadata['tables']['TABLE_NAME']`</nobr>, replacing `TABLE_NAME` with the actual name.
+* `computer_representation` for numerical variables.  
+Allowed values are `"Float"`, `"Int8"`, `"Int16"`, `"Int32"`, `"Int64"`, `"UInt8"`, `"UInt16"`, `"UInt32"`, `"UInt64"`
+
+* `regex_format` for `id` variables.  
+The regex string should use Perl style regular expression syntax (cf. also the [Python documentation](https://docs.python.org/3/library/re.html)).
+
+* `datetime_format` is **required** for datetime type variables.  
+The `SPECIFIER_VALUE` for this specifier is a string in [strftime format](https://docs.python.org/3/library/datetime.html#strftime-and-strptime-format-codes).
 
 ## Development
 
