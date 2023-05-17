@@ -99,23 +99,6 @@ class Application:
             return report.get_score()
 
         self._add_scoring(sdmetrics_quality, pipelines=pipelines)
-        # self._add_scoring(ASyH.metrics.anonymity.maximum_cosine_similarity,
-        #                  pipelines=pipelines)
-        # sdv_kscomplement = \
-        #     ASyH.metrics.adapt_sdv_metric(KSComplement)
-        # self._add_scoring(sdv_kscomplement, pipelines=pipelines)
-        # sdv_cstest = \
-        #     ASyH.metrics.adapt_sdv_metric(CSTest)
-        # self._add_scoring(sdv_cstest, pipelines=pipelines)
-
-        # sdv_correlation_similarity = \
-        #     ASyH.metrics.adapt_sdv_metric_normalized(CorrelationSimilarity)
-        # self._add_scoring(sdv_correlation_similarity, pipelines=pipelines)
-
-        # sdv_ML_peformance_logistic_regression = \
-        #     ASyH.metrics.adapt_sdv_metric_normalized(BinaryLogisticRegression)
-        # self._add_scoring(sdv_ML_peformance_logistic_regression, pipelines=pipelines)
-        # ...
 
         self._results = concurrent_dispatch(*pipelines)
 
