@@ -5,6 +5,7 @@
 
 from datetime import datetime
 import os.path
+from abc import ABC, abstractmethod
 from typing import Optional, Callable, Any, Dict
 
 from pandas import DataFrame
@@ -13,7 +14,7 @@ from sdv.single_table.base import BaseSingleTableSynthesizer
 from ASyH.data import Data
 
 
-class Model:
+class Model(ABC):
     '''ASyH Generic Model Interface'''
 
     @property
@@ -89,6 +90,7 @@ class Model:
             sample_size = self._input_data_size
         return self.sdv_model.sample(sample_size)
 
+    @abstractmethod
     def adapted_arguments(self, data: Optional[Data] = None) -> Dict[str, Any]:
         '''Method for specific models to adapt the constructor arguments to
         input data.  This method is supposed to be overridden by the specific
