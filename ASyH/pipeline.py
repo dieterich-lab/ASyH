@@ -3,6 +3,8 @@
 import tempfile
 import os
 
+from typing import Optional
+
 from ASyH.data import Data
 from ASyH.model import Model
 from ASyH.abstract_pipeline import AbstractPipeline
@@ -13,8 +15,12 @@ from ASyH.utils import flatten_dict
 class Pipeline(AbstractPipeline):
     """The basic ASyH Pipeline."""
 
-    def __init__(self, model: Model, input_data: Data):
+    def __init__(self,
+                 model: Model,
+                 input_data: Data,
+                 random_seed: Optional[int] = None):
         self._model = model
+        model.set_random_state(random_seed)
         self._input_data = input_data
         self._scoring_hook = ScoringHook()
 

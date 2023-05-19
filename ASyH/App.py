@@ -1,6 +1,9 @@
 '''Define the standard application of ASyH.'''
 import pathlib
 
+import numpy.random
+from typing import Optional
+
 import sdmetrics.reports.single_table
 # from sdv.metrics.tabular import KSComplement, CSTest, CorrelationSimilarity
 
@@ -22,9 +25,19 @@ class Application:
     def model(self):
         return self._best
 
-    def __init__(self):
+    @property
+    def random_seed(self):
+        return self._random_seed
+
+    def __init__(self, random_seed: Optional[int] = None):
+        if random_seed is None:
+            random_seed = numpy.random.randint(0, 2**32 - 1)
+        self._random_seed = random_seed
         self._results = []
         self._best = None
+
+    def set_random_seed(self, seed: int):
+        self._random_seed = seed
 
     def _add_scoring(self, scoring_function, pipelines=None):
         '''Add a scoring function to all pipelines.'''
@@ -85,10 +98,10 @@ class Application:
         """
         input_data.set_metadata(metadata)
 
-        pipelines = [TVAEPipeline(input_data),
-                     CTGANPipeline(input_data),
-                     CopulaGANPipeline(input_data),
-                     GaussianCopulaPipeline(input_data)]
+        pipelines = [TVAEPipeline(input_data, random_seed=self._random_seed),
+                     CTGANPipeline(input_data, random_seed=self._random_seed),
+                     CopulaGANPipeline(input_data, random_seed=self._random_seed),
+                     GaussianCopulaPipeline(input_data, random_seed=self._random_seed)]
 
         def sdmetrics_quality(input_data, synth_data):
             report = sdmetrics.reports.single_table.QualityReport()

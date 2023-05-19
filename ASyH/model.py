@@ -8,6 +8,7 @@ import os.path
 from abc import ABC, abstractmethod
 from typing import Optional, Callable, Any, Dict
 
+import numpy
 from pandas import DataFrame
 from sdv.single_table.base import BaseSingleTableSynthesizer
 
@@ -25,11 +26,16 @@ class Model(ABC):
     def model_type(self):
         return self._model_type
 
+    @property
+    def random_seed(self):
+        return self._random_seed
+
     def __init__(
             self,
             sdv_model_class: Optional[Callable[..., BaseSingleTableSynthesizer]] = None,
             data: Optional[Data] = None,
-            override_args: Optional[Dict[str, Any]] = None
+            override_args: Optional[Dict[str, Any]] = None,
+            random_seed: Optional[int] = None
     ):
         self._sdv_model = None
         self._sdv_model_class = sdv_model_class
@@ -45,7 +51,20 @@ class Model(ABC):
             self._training_data = None
             self._metadata = None
 
+        # a random seed must be set, to be able to return one:
+        if random_seed is None:
+            random_seed = numpy.random.randint(0, 2**32 - 1)
+        self._random_seed = random_seed
+
         self._trained = False
+
+    def set_random_state(self, seed):
+        rand_state = numpy.random.RandomState(seed)
+        # ToDo:  What to call to effectively set the seed in SDV
+        #
+        # this didn't work
+        # if self._sdv_model is not None:
+        #     self._sdv_model._set_random_state(rand_state)
 
     def _train(self, data: Optional[Data] = None):
         assert self._training_data is not None or data is not None
@@ -58,6 +77,8 @@ class Model(ABC):
                 args.update(self._override_args)
             self._sdv_model = \
                 self._sdv_model_class(**args)
+        # this doesn't work:
+        # self.set_random_state(self._random_seed)
         self._sdv_model.fit(data.data)
         self._input_data_size = data.data.shape[0]
         self._trained = True
