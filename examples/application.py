@@ -4,7 +4,7 @@
 from ASyH import Data, Metadata, concurrent_dispatch
 from ASyH.pipelines import CopulaGANPipeline, TVAEPipeline
 from ASyH.metrics.bivariate_statistics import pc_comparison
-from ASyH.metrics.sdv_metrics import adapt_sdv_metric_normalized
+
 
 # source the real data
 input_data = Data()
