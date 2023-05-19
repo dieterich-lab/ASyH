@@ -10,12 +10,11 @@ def mean_pairwise_distance(orig_data, synth_data):
     data.'''
     # concat orig_data with synth_data
     data_union = pandas.concat([orig_data.data, synth_data.data], axis=0)
-    # calculate the Gower's distance matrix
-    matrix = gower.gower_matrix(numpy.asarray(data_union))
+    gowers_distance_matrix = gower.gower_matrix(numpy.asarray(data_union))
     # extract the part in which orig_data is compared with synth_data:
     orig_size = orig_data.data.shape[0]
     synth_size = synth_data.data.shape[0]
-    distances = matrix[:orig_size, synth_size:].flatten()
+    distances = gowers_distance_matrix[:orig_size, synth_size:].flatten()
     # return the mean over all non-NaN values:
     return distances[~numpy.isnan(distances)].mean()
 
