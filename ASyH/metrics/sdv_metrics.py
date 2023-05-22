@@ -1,9 +1,11 @@
 """Wrapper functions for SDV metrics."""
+from typing import Type
+
 from sdmetrics.single_table import SingleTableMetric
 from ASyH import Data
 
 
-def adapt_sdv_metric(sdv_metric_class: SingleTableMetric):
+def adapt_sdv_metric(sdv_metric_class: Type[SingleTableMetric]):
     """Wrap SDV metric classes methods .compute(), return a function to apply
     with the metric hook of ASyH.
     """
@@ -15,7 +17,7 @@ def adapt_sdv_metric(sdv_metric_class: SingleTableMetric):
     return closure
 
 
-def adapt_sdv_metric_normalized(sdv_metric_class: SingleTableMetric):
+def adapt_sdv_metric_normalized(sdv_metric_class: Type[SingleTableMetric]):
     """Wrap SDV metric classes methods .compute() and .normalize(), returning a
     function to apply with the metric hook of ASyH.
     """
