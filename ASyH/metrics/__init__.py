@@ -1,6 +1,6 @@
 "Metrics and Wrappers for SDV/SDMetrics."
 
-from ASyH.metrics.sdv_metrics import adapt_sdv_metric, adapt_sdv_metric_normalized
+from ASyH.metrics.sdv_metrics import adapt_sdv_metric
 
 from ASyH.metrics.anonymity import mean_pairwise_distance, maximum_cosine_similarity
 
@@ -10,7 +10,6 @@ __all__ = [
     'anonymity',
     'sdv_metrics',
     'adapt_sdv_metric',
-    'adapt_sdv_metric_normalized',
     'mean_pairwise_distance',
     'maximum_cosine_similarity',
 ]
