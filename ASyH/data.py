@@ -62,8 +62,7 @@ class Data:
 
 
 class RealData(Data):
-    def __init__(self, data: Optional[DataFrame]):
-        Data.__init__(self, data)
+    pass
 
 
 class SyntheticData(Data):
@@ -71,15 +70,12 @@ class SyntheticData(Data):
     file.
     """
 
-    def __init__(self, data: Optional[DataFrame]):
-        Data.__init__(self, data)
-
     def write(self, outputfile):
         """Write synthetic data to output to file.  Excel and CSV are supported.
         The default is CSV, if the given output file name isn't compatible with
         Excel file endings.
         """
-        x = re.compile(".xls.?")
+        x = re.compile(r"[.]xls.?\Z", flags=re.IGNORECASE)
         if x.search(outputfile):
             self._data.to_excel(outputfile, index=False)
         else:

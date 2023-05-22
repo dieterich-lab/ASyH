@@ -1,11 +1,13 @@
 """Wrapper functions for SDV metrics."""
+from sdmetrics.single_table import SingleTableMetric
+from ASyH import Data
 
 
-def adapt_sdv_metric(sdv_metric_class):
+def adapt_sdv_metric(sdv_metric_class: SingleTableMetric):
     """Wrap SDV metric classes methods .compute(), return a function to apply
     with the metric hook of ASyH.
     """
-    def closure(orig_data, synth_data):
+    def closure(orig_data: Data, synth_data: Data):
         return sdv_metric_class.compute(orig_data.data,
                                         synth_data.data,
                                         orig_data.metadata.columns)
@@ -13,11 +15,11 @@ def adapt_sdv_metric(sdv_metric_class):
     return closure
 
 
-def adapt_sdv_metric_normalized(sdv_metric_class):
+def adapt_sdv_metric_normalized(sdv_metric_class: SingleTableMetric):
     """Wrap SDV metric classes methods .compute() and .normalize(), returning a
     function to apply with the metric hook of ASyH.
     """
-    def closure(orig_data, synth_data):
+    def closure(orig_data: Data, synth_data: Data):
         raw_score = sdv_metric_class.compute(orig_data.data,
                                              synth_data.data,
                                              orig_data.metadata.columns)
