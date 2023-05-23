@@ -1,6 +1,7 @@
 '''ASyH Concrete Model-Derived Classes'''
 from typing import Optional, Dict, Any
 
+import sdmetrics
 import rdt
 
 #
@@ -8,6 +9,7 @@ import rdt
 #   Implement adapt() for models to tune the model internals to the data.
 
 import sdv
+import ASyH
 from ASyH.data import Data
 from ASyH.model import Model
 
@@ -105,5 +107,49 @@ class GaussianCopulaModel(Model):
 
     def adapted_arguments(self, data: Optional[Data] = None) -> Dict[str, Any]:
         '''Method to adapt the Gaussian Copula sdv model internals to data'''
-        return {'metadata': _get_metadata_from_data(data),
-                'default_distribution': 'truncnorm'}
+        args = {'metadata': _get_metadata_from_data(data)}
+        args.update(self._tune_GCM_distributions(data))
+        return args
+
+    def _tune_GCM_distributions(self, data: Data) -> Dict[str, str]:
+        best_scores = _init_iterative_scores(data.metadata)
+        numerical_vars = data.metadata.variables_by_type('numerical')
+
+        for dist in sdv.single_table.copulas.GaussianCopulaSynthesizer._DISTRIBUTIONS:
+            GCM_model = self.Regressed_GaussianCopulaSynthesizer(metadata=_get_metadata_from_data(data),
+                                                                 default_distribution=dist)
+            GCM_model.fit(data.data)
+            synth_data = GCM_model.sample(data.data.shape[0])
+            sdmetrics_report = sdmetrics.reports.single_table.QualityReport()
+            sdmetrics_report.generate(data.data,
+                                      synth_data,
+                                      data.metadata.metadata,
+                                      verbose=False)
+
+            # 'details' is a pandas dataframe:
+            details = sdmetrics_report.get_details(property_name='Column Shapes')
+
+            # numerical variables use KSComplement, categorical/booleans use TVComplement:
+            # use the average score for categorical variables
+            categorical_score = details[details['Metric'] == 'TVComplement']['Quality Score'].mean()
+            if categorical_score > best_scores['categorical'][1]:
+                best_scores['categorical'] = (dist, categorical_score)
+            # we want detailed fitting distributions for numerical variables
+            for num_var in numerical_vars:
+                score = details[details['Column'] == num_var]['Quality Score'].values[0]
+                if score > best_scores[num_var][1]:
+                    best_scores[num_var] = (dist, score)
+                    # create the override_args
+                    column_distributions = {var: best_scores[var][0]
+                                            for var in best_scores
+                                            if var != 'categorical'}
+
+        return {'numerical_distributions': column_distributions,
+                'default_distribution': best_scores['categorical'][0]}
+
+def _init_iterative_scores(metadata_dict: Dict[str,any]):
+    return_dict = {}
+    for numerical in metadata_dict.variables_by_type('numerical'):
+        return_dict[numerical] = ('', 0.0)
+        return_dict['categorical'] = ('', 0.0)
+    return return_dict
