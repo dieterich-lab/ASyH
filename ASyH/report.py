@@ -17,7 +17,7 @@ import sdmetrics.reports.single_table
 
 class report:
 
-    TEMPLATE = """# ASyH/SDMetrics Report for dataset {{ dataset }}
+    _TEMPLATE = """# ASyH/SDMetrics Report for dataset {{ dataset }}
 
 ## Best model
 
@@ -61,7 +61,7 @@ class report:
 
         # pickling the SDMetrics report object
         pickle_file = f'{filename_stump}.pkl'
-        with open(pickle, 'wb') as report_pickle:
+        with open(pickle_file, 'wb') as report_pickle:
             pickle.dump(self._sdmetrics_report, report_pickle)
 
         files.extend(pickle_file)
@@ -122,8 +122,8 @@ class report:
         if 'primary_key' in self._metadata.keys():
             column_names = [k for k in column_names
                             if k != self._metadata['primary_key']]
-            columns = [k for k in column_names
-                       if self._metadata['columns'][k]['sdtype'] != 'id']
+        columns = [k for k in column_names
+                   if self._metadata['columns'][k]['sdtype'] != 'id']
 
         for column in columns:
             image_list.append(self._column_plot(column, image_dir))
