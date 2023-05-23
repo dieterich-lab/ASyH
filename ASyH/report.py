@@ -64,13 +64,13 @@ class report:
         with open(pickle_file, 'wb') as report_pickle:
             pickle.dump(self._sdmetrics_report, report_pickle)
 
-        files.extend(pickle_file)
+        files.extend([pickle_file])
 
         if details:
             detailed_scores_file = f'{filename_stump}_scores.csv'
             detailed_scores = self._sdmetrics_report.get_details(property_name='Column Shapes')
             detailed_scores.to_csv(detailed_scores_file)
-            files.extend(detailed_scores_file)
+            files.extend([detailed_scores_file])
 
         images = self._create_images(f'./pngs-{name_time}')
         files.extend(images)
@@ -82,7 +82,7 @@ class report:
         with open(markdown_file, 'w', encoding='utf-8') as md_file:
             md_file.write(markdown)
 
-        files.extend(markdown_file)
+        files.extend([markdown_file])
 
         try:
             import pypandoc
@@ -91,7 +91,7 @@ class report:
                                   'pdf',
                                   format='md',
                                   outputfile=pdf)
-            files.extend(pdf)
+            files.extend([pdf])
         except Exception as exception:
             print('')
             print(f'Could not produce PDF document: {type(exception)}!')
