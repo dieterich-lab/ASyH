@@ -7,7 +7,7 @@ from ASyH.model import Model
 from ASyH.models import TVAEModel, CTGANModel, CopulaGANModel, GaussianCopulaModel
 from ASyH.pipeline import Pipeline
 from ASyH.pipelines import TVAEPipeline, CTGANPipeline, CopulaGANPipeline, GaussianCopulaPipeline
-from ASyH.report import report
+from ASyH.report import Report
 from ASyH.dispatch import concurrent_dispatch
 
 __all__ = [
@@ -25,6 +25,6 @@ __all__ = [
     'CTGANPipeline',
     'CopulaGANPipeline',
     'GaussianCopulaPipeline',
-    'report',
+    'Report',
     'concurrent_dispatch'
 ]

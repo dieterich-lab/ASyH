@@ -22,6 +22,7 @@ synthetic_data.to_csv(output_file, index=False)
 Alternatively, you can specify an Excel file as first argument to `asyh.synthesize(.,.)`
 
 Additionally, a report of the output data quality (in terms of similarity to the original data) can be generated with (appended to the above code, in the same script file)
+
 ```python
 import pandas
 import json
@@ -37,7 +38,7 @@ with open('metadata.json', 'r', encooding='utf-8') as md_file:
 #   report.md
 # and, if an installation of TeXLive and pandoc is available
 #   report.pdf
-ASyH.report('report', asyh.model.model_type,
+ASyH.Report('report', asyh.model.model_type,
             original_data, synthetic_data,
             metadata)
 ```

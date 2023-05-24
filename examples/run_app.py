@@ -32,8 +32,5 @@ if __name__ == '__main__':
     with open(METADATA_FILE, 'r') as md_file:
         metadata = json.load(md_file)
 
-    ASyH.report(FILENAME_ROOT,
-                asyh.model.model_type,
-                real_data,
-                synth,
-                metadata)
+    report = ASyH.Report(real_data, synth, metadata)
+    report.generate(FILENAME_ROOT, asyh.model.model_type)
