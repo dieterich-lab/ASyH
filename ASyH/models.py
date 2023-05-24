@@ -9,7 +9,6 @@ import rdt
 #   Implement adapt() for models to tune the model internals to the data.
 
 import sdv
-import ASyH
 from ASyH.data import Data
 from ASyH.model import Model
 
@@ -147,7 +146,8 @@ class GaussianCopulaModel(Model):
         return {'numerical_distributions': column_distributions,
                 'default_distribution': best_scores['categorical'][0]}
 
-def _init_iterative_scores(metadata_dict: Dict[str,any]):
+
+def _init_iterative_scores(metadata_dict: Dict[str, any]):
     return_dict = {}
     for numerical in metadata_dict.variables_by_type('numerical'):
         return_dict[numerical] = ('', 0.0)
