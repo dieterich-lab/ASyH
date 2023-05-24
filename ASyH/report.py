@@ -15,7 +15,7 @@ import sdmetrics.reports.single_table
 # from the report, extract scores and images
 # output markdown, attempt transforming to pdf
 
-class report:
+class Report:
 
     _TEMPLATE = """# ASyH/SDMetrics Report for dataset {{ dataset }}
 

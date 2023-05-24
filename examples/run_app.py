@@ -32,7 +32,7 @@ if __name__ == '__main__':
     with open(METADATA_FILE, 'r') as md_file:
         metadata = json.load(md_file)
 
-    report = ASyH.report(real_data,
+    report = ASyH.Report(real_data,
                          synth,
                          metadata)
 
