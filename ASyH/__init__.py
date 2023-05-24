@@ -25,6 +25,6 @@ __all__ = [
     'CTGANPipeline',
     'CopulaGANPipeline',
     'GaussianCopulaPipeline',
-    'report',
+    'Report',
     'concurrent_dispatch'
 ]
