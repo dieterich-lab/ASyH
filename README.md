@@ -38,9 +38,8 @@ with open('metadata.json', 'r', encooding='utf-8') as md_file:
 #   report.md
 # and, if an installation of TeXLive and pandoc is available
 #   report.pdf
-ASyH.Report('report', asyh.model.model_type,
-            original_data, synthetic_data,
-            metadata)
+report = ASyH.Report(original_data, synthetic_data, metadata)
+report.generate('report', asyh.model.model_type)
 ```
 
 you will find a zip archive with all images, the markdow file (if generated the PDF as well), and the synthetic data in a CSV file.  Mind that the above code assumes that the metadata specifies the table name as 'data'.
