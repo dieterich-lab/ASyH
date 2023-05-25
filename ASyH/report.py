@@ -1,9 +1,11 @@
 """Module to create a report document from SDMetrics analysis data."""
-
+import re
+from collections import namedtuple
+from os.path import abspath, dirname, join
 import datetime
 import pathlib
 
-from jinja2 import Environment, BaseLoader
+from jinja2 import Environment, FileSystemLoader
 import pickle
 import zipfile
 
@@ -11,87 +13,147 @@ import sdmetrics.reports
 import sdmetrics.reports.single_table
 
 
+ImagesDict = namedtuple('ImagesDict', 'column_pair_trends column_shapes per_column')
+
+
 # ASyH.report: RealData, SyntheticData -> sdmetrics.report
 # from the report, extract scores and images
 # output markdown, attempt transforming to pdf
 
 class Report:
+    SPECIAL_CHARS_REGEXP = re.compile(r'[^a-zA-Z0-9.,:;_-]')
 
-    _TEMPLATE = """# ASyH/SDMetrics Report for dataset {{ dataset }}
-
-## Best model
-
-**{{ sd_model }}**
-
-**QualityScore: {{ '%3.2f' % quality_score|float }}%**
-
-|      Column Shapes          |        Column Pair Trends       |
-| --------------------------- | ------------------------------- |
-| {{ '%3.2f' % column_shapes_score|float }} % | {{ '%3.2f' % column_pair_trends_score|float }} % |
-
-## Distribution and Correlation Similarities
-
-![Column distribution similarity comparison.]({{ column_shapes }})
-
-![Column pair trends and column correlation comparison.]({{ column_pair_trends }})
-
-## Per-Column comparisons:
-
-{% for image in images %}
-![]({{ image }})
-{% endfor %}
-"""
-
-    def __init__(self, input_data, synthetic_data, metadata):
+    def __init__(self, input_data, synthetic_data, metadata, sdmetrics_report=None):
+        if sdmetrics_report is None:
+            sdmetrics_report = sdmetrics.reports.single_table.QualityReport()
         self._input_data = input_data
         self._synthetic_data = synthetic_data
         self._metadata = metadata
-        self._sdmetrics_report = sdmetrics.reports.single_table.QualityReport()
+        self._sdmetrics_report = sdmetrics_report
+        self._report_name = None
+        self._image_dir = None
+        self._files = []
 
     def generate(self, dataset_name, sd_model_name, details=False):
-        self._sdmetrics_report.generate(self._input_data,
-                                        self._synthetic_data,
-                                        self._metadata)
-
-        timestamp = datetime.datetime.now().strftime('%Y%m%d%H%M%S')
-        name_time = f'{dataset_name}-{timestamp}'
-        filename_stump = f'./report-{name_time}'
-
-        files = []
-
-        # pickling the SDMetrics report object
-        pickle_file = f'{filename_stump}.pkl'
-        with open(pickle_file, 'wb') as report_pickle:
-            pickle.dump(self._sdmetrics_report, report_pickle)
-
-        files.extend([pickle_file])
-
+        self._prepare(dataset_name)
+        self._sdmetrics_report.generate(
+            self._input_data,
+            self._synthetic_data,
+            self._metadata
+        )
+        self._dump(lambda x: self.create_pickled_report(x), f'{self._report_name}.pkl')
         if details:
-            detailed_scores_file = f'{filename_stump}_scores.csv'
-            detailed_scores = self._sdmetrics_report.get_details(property_name='Column Shapes')
-            detailed_scores.to_csv(detailed_scores_file)
-            files.extend([detailed_scores_file])
+            self._dump(lambda x: self.create_scores_csv(x), f'{self._report_name}_scores.csv', mode='w')
 
-        images = self._create_images(f'./pngs-{name_time}')
-        files.extend(images)
+        images = self._dump_images()
+        markdown = self.get_mark_down_report(dataset_name, sd_model_name, images)
+        self._dump(lambda x: print(markdown, file=x), f'{self._report_name}.md', mode='w')
+        self._try_to_dump_pdf_report(markdown)
+        self.create_zip_archive()
 
-        markdown = self._create_report_markdown(dataset_name,
-                                                sd_model_name,
-                                                images)
-        markdown_file = f'{filename_stump}.md'
-        with open(markdown_file, 'w', encoding='utf-8') as md_file:
-            md_file.write(markdown)
+    def _prepare(self, dataset_name):
+        self._files = []
+        timestamp = datetime.datetime.now().strftime('%Y%m%d%H%M%S')
+        self._report_name = f'report-{dataset_name}-{timestamp}'
+        self._image_dir = f'pngs-{dataset_name}-{timestamp}'
 
-        files.extend([markdown_file])
+    def _dump(self, generator, path, mode='wb'):
+        with open(path, mode) as fp:
+            generator(fp)
+        self._files.append(path)
 
+    def create_pickled_report(self, file_like):
+        pickle.dump(self._sdmetrics_report, file_like)
+
+    def create_scores_csv(self, file_like):
+        detailed_scores = self._sdmetrics_report.get_details(property_name='Column Shapes')
+        detailed_scores.to_csv(file_like)
+
+    def _dump_images(self):
+        pathlib.Path(self._image_dir).mkdir(exist_ok=False)
+
+        column_pair_trends_image = self.get_stat_image_name('Column Pair Trends')
+        self._dump(lambda x: self.create_stats_image('Column Pair Trends', x), column_pair_trends_image)
+        column_shapes_image = self.get_stat_image_name('Column Shapes')
+        self._dump(lambda x: self.create_stats_image('Column Shapes', x), column_shapes_image)
+
+        per_column_images = []
+        for column in self.get_columns():
+            image = self.get_per_column_image_name(column)
+            self._dump(lambda x: self.create_per_column_image(column, x), image)
+            per_column_images.append(image)
+
+        return ImagesDict(
+            column_pair_trends=column_pair_trends_image,
+            column_shapes=column_shapes_image,
+            per_column=per_column_images,
+        )
+
+    def get_columns(self):
+        columns = self._metadata['columns'].keys()
+        if 'primary_key' in self._metadata.keys():
+            columns = [
+                c
+                for c in columns
+                if c != self._metadata['primary_key']
+            ]
+        return [
+            c
+            for c in columns
+            if self._metadata['columns'][c]['sdtype'] != 'id'
+        ]
+
+    def get_mark_down_report(self, dataset_name, sd_model_name, images):
+        jinja_template = self._get_report_template()
+        return jinja_template.render(
+            quality_score_percent=100 * self._sdmetrics_report.get_score(),
+            dataset=dataset_name,
+            sd_model=sd_model_name,
+            column_shapes_score_percent=self.get_report_property_as_percent('Column Shapes'),
+            column_pair_trends_score_percent=self.get_report_property_as_percent('Column Pair Trends'),
+            column_shapes_image=images.column_shapes,
+            column_pair_trends_image=images.column_pair_trends,
+            per_column_images=images.per_column
+        )
+
+    @staticmethod
+    def _get_report_template():
+        template_path = dirname(abspath(__file__))
+        loader = FileSystemLoader(searchpath=template_path)
+        env = Environment(loader=loader)
+        return env.get_template('report.j2')
+
+    def get_report_property_as_percent(self, property_name):
+        props = self._sdmetrics_report.get_properties()
+        return 100 * props[props['Property'] == property_name].iloc[0]['Score']
+
+    def create_per_column_image(self, column, file_like):
+        fig = sdmetrics.reports.utils.get_column_plot(
+            real_data=self._input_data,
+            synthetic_data=self._synthetic_data,
+            column_name=column,
+            metadata=self._metadata
+        )
+        fig.write_image(file_like, format='png')
+
+    def get_per_column_image_name(self, column):
+        clean_column = self._clean_string(column)
+        return join(self._image_dir, f"column_plot_{clean_column}.png")
+
+    def _clean_string(self, x):
+        return re.sub(self.SPECIAL_CHARS_REGEXP, 'X', x.replace(' ', '_'))
+
+    def create_stats_image(self, property_name, file_like):
+        fig = self._sdmetrics_report.get_visualization(property_name=property_name)
+        fig.write_image(file_like, format='png')
+
+    def get_stat_image_name(self, property_name):
+        cooked_property_name = self._clean_string(property_name.lower())
+        return join(self._image_dir, f"{cooked_property_name}.png")
+
+    def _try_to_dump_pdf_report(self, markdown):
         try:
-            import pypandoc
-            pdf = f'{filename_stump}.pdf'
-            pypandoc.convert_text(markdown,
-                                  'pdf',
-                                  format='md',
-                                  outputfile=pdf)
-            files.extend([pdf])
+            self._dump(lambda x: self._create_pdf_report(markdown, x), f'{self._report_name}.pdf')
         except Exception as exception:
             print('')
             print(f'Could not produce PDF document: {type(exception)}!')
@@ -104,68 +166,14 @@ class Report:
             print('  *****************************************************************')
             print('')
 
-        zip_file = f'{filename_stump}.zip'
-        with zipfile.ZipFile(f'{filename_stump}.zip', 'w') as archive:
-            for file in files:
-                archive.write(file)
+    @staticmethod
+    def _create_pdf_report(markdown, file_like):
+        import pypandoc
+        file_like.write(
+            pypandoc.convert_text(markdown, 'pdf', format='md')
+        )
 
-        return zip_file
-
-    def _create_images(self, image_dir):
-        image_list = []
-        pathlib.Path(image_dir).mkdir(exist_ok=False)
-
-        image_list.append(self._stats_fig('Column Pair Trends', image_dir))
-        image_list.append(self._stats_fig('Column Shapes', image_dir))
-
-        column_names = self._metadata['columns'].keys()
-        if 'primary_key' in self._metadata.keys():
-            column_names = [k for k in column_names
-                            if k != self._metadata['primary_key']]
-        columns = [k for k in column_names
-                   if self._metadata['columns'][k]['sdtype'] != 'id']
-
-        for column in columns:
-            image_list.append(self._column_plot(column, image_dir))
-
-        return image_list
-
-    def _create_report_markdown(self, dataset_name, sd_model_name, image_list):
-        quality_score = self._sdmetrics_report.get_score() * 100
-        props = self._sdmetrics_report.get_properties()
-        column_shapes_score = \
-            props[props['Property'] == 'Column Shapes'].iloc[0]['Score'] * 100
-        column_pair_trends_score = \
-            props[props['Property'] == 'Column Pair Trends'].iloc[0]['Score'] * 100
-
-        jinja_env = Environment()
-        jinja_template = jinja_env.from_string(self._TEMPLATE)
-
-        column_pair_trends = image_list[0]
-        column_shapes = image_list[1]
-
-        return jinja_template.render(loader=BaseLoader(),
-                                     quality_score=quality_score,
-                                     dataset=dataset_name,
-                                     sd_model=sd_model_name,
-                                     column_shapes_score=column_shapes_score,
-                                     column_pair_trends_score=column_pair_trends_score,
-                                     column_shapes=column_shapes,
-                                     column_pair_trends=column_pair_trends,
-                                     images=image_list[2:])
-
-    def _column_plot(self, column, output_dir):
-        fig = sdmetrics.reports.utils.get_column_plot(real_data=self._input_data,
-                                                      synthetic_data=self._synthetic_data,
-                                                      column_name=column,
-                                                      metadata=self._metadata)
-        outputfile = f'{output_dir}/column_plot_{column}.png'
-        fig.write_image(outputfile, format='png')
-        return outputfile
-
-    def _stats_fig(self, property_name, output_dir):
-        fig = self._sdmetrics_report.get_visualization(property_name=property_name)
-        file_name = property_name.lower().replace(' ', '_')
-        outputfile = f'{output_dir}/{file_name}.png'
-        fig.write_image(outputfile, format='png')
-        return outputfile
+    def create_zip_archive(self):
+        with zipfile.ZipFile(f'{self._report_name}.zip', 'w') as archive:
+            for path in self._files:
+                archive.write(path)

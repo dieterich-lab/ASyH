@@ -1,0 +1,23 @@
+# ASyH/SDMetrics Report for dataset {{ dataset }}
+
+## Best model
+
+**{{ sd_model }}**
+
+**QualityScore: {{ '%3.2f' % quality_score_percent|float }}%**
+
+|      Column Shapes          |        Column Pair Trends       |
+| --------------------------- | ------------------------------- |
+| {{ '%3.2f' % column_shapes_score_percent|float }} % | {{ '%3.2f' % column_pair_trends_score_percent|float }} % |
+
+## Distribution and Correlation Similarities
+
+![Column distribution similarity comparison.]({{ column_shapes_image }})
+
+![Column pair trends and column correlation comparison.]({{ column_pair_trends_image }})
+
+## Per-Column comparisons:
+
+{% for image in per_column_images %}
+![]({{ image }})
+{% endfor %}
