@@ -153,7 +153,6 @@ class Report:
 
     def _try_to_dump_pdf_report(self, markdown):
         try:
-            import pypandoc
             self._dump(f'{self._report_name}.pdf', lambda x: self._create_pdf_report(markdown, x))
         except Exception as exception:
             print('')
