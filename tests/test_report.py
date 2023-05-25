@@ -159,7 +159,7 @@ def test_dump(default_report, fs):
         file_like.write('bla')
 
     mkdir('/foo')
-    default_report._dump('/foo/bar', generate, mode='w')
+    default_report._dump(generate, '/foo/bar', mode='w')
     assert exists('/foo/bar')
     with open('/foo/bar') as input:
         assert input.read() == 'bla'

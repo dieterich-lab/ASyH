@@ -41,13 +41,13 @@ class Report:
             self._synthetic_data,
             self._metadata
         )
-        self._dump(f'{self._report_name}.pkl', lambda x: self.create_pickled_report(x))
+        self._dump(lambda x: self.create_pickled_report(x), f'{self._report_name}.pkl')
         if details:
-            self._dump(f'{self._report_name}_scores.csv', lambda x: self.create_scores_csv(x), mode='w')
+            self._dump(lambda x: self.create_scores_csv(x), f'{self._report_name}_scores.csv', mode='w')
 
         images = self._dump_images()
         markdown = self.get_mark_down_report(dataset_name, sd_model_name, images)
-        self._dump(f'{self._report_name}.md', lambda x: print(markdown, file=x), mode='w')
+        self._dump(lambda x: print(markdown, file=x), f'{self._report_name}.md', mode='w')
         self._try_to_dump_pdf_report(markdown)
         self.create_zip_archive()
 
@@ -57,7 +57,7 @@ class Report:
         self._report_name = f'report-{dataset_name}-{timestamp}'
         self._image_dir = f'pngs-{dataset_name}-{timestamp}'
 
-    def _dump(self, path, generator, mode='wb'):
+    def _dump(self, generator, path, mode='wb'):
         with open(path, mode) as fp:
             generator(fp)
         self._files.append(path)
@@ -73,14 +73,14 @@ class Report:
         pathlib.Path(self._image_dir).mkdir(exist_ok=False)
 
         column_pair_trends_image = self.get_stat_image_name('Column Pair Trends')
-        self._dump(column_pair_trends_image, lambda x: self.create_stats_image('Column Pair Trends', x))
+        self._dump(lambda x: self.create_stats_image('Column Pair Trends', x), column_pair_trends_image)
         column_shapes_image = self.get_stat_image_name('Column Shapes')
-        self._dump(column_shapes_image, lambda x: self.create_stats_image('Column Shapes', x))
+        self._dump(lambda x: self.create_stats_image('Column Shapes', x), column_shapes_image)
 
         per_column_images = []
         for column in self.get_columns():
             image = self.get_per_column_image_name(column)
-            self._dump(image, lambda x: self.create_per_column_image(column, x))
+            self._dump(lambda x: self.create_per_column_image(column, x), image)
             per_column_images.append(image)
 
         return ImagesDict(
@@ -153,7 +153,7 @@ class Report:
 
     def _try_to_dump_pdf_report(self, markdown):
         try:
-            self._dump(f'{self._report_name}.pdf', lambda x: self._create_pdf_report(markdown, x))
+            self._dump(lambda x: self._create_pdf_report(markdown, x), f'{self._report_name}.pdf')
         except Exception as exception:
             print('')
             print(f'Could not produce PDF document: {type(exception)}!')
