@@ -24,6 +24,7 @@ Alternatively, you can specify an Excel file as first argument to `asyh.synthesi
 Additionally, a report of the output data quality (in terms of similarity to the original data) can be generated with (appended to the above code, in the same script file)
 
 ```python
+import ASyH
 import pandas
 import json
 
@@ -33,6 +34,9 @@ original_data = pandas.read_csv('input_data.csv')
 # We also need the metadata as a dict:
 with open('metadata.json', 'r', encooding='utf-8') as md_file:
     metadata = json.load(md_file)
+
+asyh = ASyH.Application()
+synthetic_data = asyh.synthesize(input_data.csv', metadata_file='metadata.json')
 
 # the following will create the md file
 #   report.md
