@@ -87,7 +87,7 @@ To do development on this software do this:
 * Activate the venv
 * Install the package editable (-e) with the test dependencies:
 
-        pip install -e '. [tests]'
+        pip install -e '.[tests]'
 
 To run the tests set the PYTHONPATH and execute pytest on the 'tests' folder:
 

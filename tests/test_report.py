@@ -1,5 +1,6 @@
 import re
-from os.path import join
+from os import mkdir
+from os.path import join, exists
 
 import pytest
 from pandas import DataFrame
@@ -85,6 +86,7 @@ def default_report():
     report._image_dir = DEFFAULT_IMAGE_DIR
     yield report
 
+
 @pytest.fixture
 def mock_sdmetrics(mocker):
     def my_mock(real_data, synthetic_data, column_name, metadata):  # noqa
@@ -150,3 +152,29 @@ def test_create_stats_image(default_report, mock_sdmetrics):
     result = BytesIO()
     default_report.create_stats_image('Column Pair Trends', result)
     assert result.getvalue() == b'PNG of Column Pair Trends'
+
+
+def test_dump(default_report, fs):
+    def generate(file_like):
+        file_like.write('bla')
+
+    mkdir('/foo')
+    default_report._dump('/foo/bar', generate, mode='w')
+    assert exists('/foo/bar')
+    with open('/foo/bar') as input:
+        assert input.read() == 'bla'
+    assert default_report._files == ['/foo/bar']
+
+
+def test_dump_images(default_report, mock_sdmetrics, fs):
+    expected_images = [
+        'img_dir/column_pair_trends.png',
+        'img_dir/column_shapes.png',
+        'img_dir/column_plot_data_1.png',
+        'img_dir/column_plot_data_2.png'
+    ]
+
+    default_report._dump_images()
+    assert default_report._files == expected_images
+    for image in expected_images:
+        assert exists(image)
