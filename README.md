@@ -1,4 +1,4 @@
-# ASyH - Anonymous Synthesizer for Health Data.
+# ASyH - Anonymous Synthesizer for Health Data (Release 1).
 
 ## Overview
 
@@ -96,3 +96,8 @@ To run the tests set the PYTHONPATH and execute pytest on the 'tests' folder:
 
         export PYTHONPATH=$(pwd)
         pytest tests
+
+## Release History
+| Release | Date |
+| ---: | ---: |
+|1.0.0| 25/05/2023|
