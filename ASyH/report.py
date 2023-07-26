@@ -121,7 +121,7 @@ class Report:
         template_path = dirname(abspath(__file__))
         loader = FileSystemLoader(searchpath=template_path)
         env = Environment(loader=loader)
-        return env.get_template('report.j2')
+        return env.get_template('report.j2', dirname(__file__))
 
     def get_report_property_as_percent(self, property_name):
         props = self._sdmetrics_report.get_properties()
