@@ -153,7 +153,7 @@ class Report:
 
     def _try_to_dump_pdf_report(self, markdown):
         try:
-            self._dump(lambda x: self._create_pdf_report(markdown, x), f'{self._report_name}.pdf')
+            self._create_pdf_report(markdown)
         except Exception as exception:
             print('')
             print(f'Could not produce PDF document: {type(exception)}!')
@@ -166,12 +166,9 @@ class Report:
             print('  *****************************************************************')
             print('')
 
-    @staticmethod
-    def _create_pdf_report(markdown, file_like):
+    def _create_pdf_report(self, markdown):
         import pypandoc
-        file_like.write(
-            pypandoc.convert_text(markdown, 'pdf', format='md')
-        )
+        pypandoc.convert_text(markdown, 'pdf', format='markdown', outputfile=f'{self._report_name}.pdf')
 
     def create_zip_archive(self):
         with zipfile.ZipFile(f'{self._report_name}.zip', 'w') as archive:
