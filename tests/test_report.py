@@ -48,7 +48,7 @@ class SDMetricsReportMock:
             data={
                 'Column': ['Mock'],
                 'Metric': ['Mock'],
-                'Quality Score': [1.0],
+                'Score': [1.0],
             }
         )
 
