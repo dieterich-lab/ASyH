@@ -128,7 +128,7 @@ class Report:
         return 100 * props[props['Property'] == property_name].iloc[0]['Score']
 
     def create_per_column_image(self, column, file_like):
-        fig = sdmetrics.reports.utils.get_column_plot(
+        fig = sdmetrics.visualization.get_column_plot(
             real_data=self._input_data,
             synthetic_data=self._synthetic_data,
             column_name=column,
