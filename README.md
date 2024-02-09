@@ -6,6 +6,12 @@ The ASyH is a software helping Clinics as holders of large quantities of highly 
 
 For synthesis, metrics and quality assurance we will mainly use the [Synthetic Data Vault](https://sdv.dev) ([github](https://github.com/sdv-dev/SDV)).
 
+## Installation and Upgrading
+
+Using pip, the easiest way to install/upgrade ASyH is
+
+    pip install --upgrade https://github.com/dieterich-lab/ASyH/tarball/v1.0.2
+
 ## Usage
 
 The most basic use case for ASyH is to create an ASyH Application object and call synthesize() to get a synthetic dataset from the best-performing SDV model/synthesizer (one of CopulaGAN, CTGAN, GaussianCopula, or TVAE [cf. [the SDV documentation](https://docs.sdv.dev/sdv/single-table-data/modeling/synthesizers)]).  The input original dataset should be provided as a pandas DataFrame, the synthesized dataset is output as pandas DataFrame as well.  For identification of numerical and categorical variables, a metadata file in JSON format needs to be provided (see below).
