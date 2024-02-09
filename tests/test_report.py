@@ -48,7 +48,7 @@ class SDMetricsReportMock:
             data={
                 'Column': ['Mock'],
                 'Metric': ['Mock'],
-                'Quality Score': [1.0],
+                'Score': [1.0],
             }
         )
 
@@ -92,7 +92,7 @@ def mock_sdmetrics(mocker):
     def my_mock(real_data, synthetic_data, column_name, metadata):  # noqa
         return FigureMock(column_name)
 
-    mocker.patch('ASyH.report.sdmetrics.reports.utils.get_column_plot', new=my_mock)
+    mocker.patch('ASyH.report.sdmetrics.visualization.get_column_plot', new=my_mock)
 
 
 def test_create_pickled_report(pickle_mock, default_report):
@@ -104,7 +104,7 @@ def test_create_pickled_report(pickle_mock, default_report):
 def test_create_scores_csv(default_report):
     result = StringIO()
     default_report.create_scores_csv(result)
-    assert result.getvalue() == ''',Column,Metric,Quality Score
+    assert result.getvalue() == ''',Column,Metric,Score
 0,Mock,Mock,1.0
 '''
 

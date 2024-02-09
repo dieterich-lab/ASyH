@@ -130,12 +130,12 @@ class GaussianCopulaModel(Model):
 
             # numerical variables use KSComplement, categorical/booleans use TVComplement:
             # use the average score for categorical variables
-            categorical_score = details[details['Metric'] == 'TVComplement']['Quality Score'].mean()
+            categorical_score = details[details['Metric'] == 'TVComplement']['Score'].mean()
             if categorical_score > best_scores['categorical'][1]:
                 best_scores['categorical'] = (dist, categorical_score)
             # we want detailed fitting distributions for numerical variables
             for num_var in numerical_vars:
-                score = details[details['Column'] == num_var]['Quality Score'].values[0]
+                score = details[details['Column'] == num_var]['Score'].values[0]
                 if score > best_scores[num_var][1]:
                     best_scores[num_var] = (dist, score)
                     # create the override_args
