@@ -2,7 +2,7 @@
 
 ## Overview
 
-The ASyH is a software helping Clinics as holders of large quantities of highly restricted personal health data to provide the Medical Data Community with realistic datasets without the breach of privacy.  It does this by synthesizing data with Machine Learning techniques which preserve data distribution and correlation while adding as much variation to the synthetic data, in order for it to have no resemblance any of the original patient data entries.
+The ASyH is a software helping Clinics as holders of large quantities of highly restricted personal health data to provide the Medical Data Community with realistic datasets without the breach of privacy.  It does this by synthesizing data with Machine Learning techniques which preserve data distribution and correlation while adding as much variation to the synthetic data, in order for it to have no resemblance to any of the original patient data entries.
 
 For synthesis, metrics and quality assurance we will mainly use the [Synthetic Data Vault](https://sdv.dev) ([github](https://github.com/sdv-dev/SDV)).
 
@@ -38,7 +38,7 @@ import json
 original_data = pandas.read_csv('input_data.csv')
 
 # We also need the metadata as a dict:
-with open('metadata.json', 'r', encooding='utf-8') as md_file:
+with open('metadata.json', 'r', encoding='utf-8') as md_file:
     metadata = json.load(md_file)
 
 asyh = ASyH.Application()
@@ -52,7 +52,7 @@ report = ASyH.Report(original_data, synthetic_data, metadata)
 report.generate('report', asyh.model.model_type)
 ```
 
-you will find a zip archive with all images, the markdow file (if generated the PDF as well), and the synthetic data in a CSV file.  Mind that the above code assumes that the metadata specifies the table name as 'data'.
+you will find a zip archive with all images, the markdown file (if generated the PDF as well), and the synthetic data in a CSV file.  Mind that the above code assumes that the metadata specifies the table name as 'data'.
 
 ## Metadata format
 
@@ -76,13 +76,13 @@ or
 
     "COLUMN_NAME": {"sdtype": "COLUMN_TYPE", "SPECIFIER": SPECIFIER_VALUE}
 
-where `COLUMN_NAME` is a column variable's name and `COLUMN_TYPE` is on of `(numerical, datetime, categorical, boolean, id)`.  The `SPECIFIER`/`SPECIFIER_VALUE` pair to use depends on the `sdtype` of the variable, it does not apply to boolean and categorical variables, otherwise they are:
+where `COLUMN_NAME` is a column variable's name and `COLUMN_TYPE` is on of `(numerical, datetime, categorical, boolean, id)`.  The `SPECIFIER`/`SPECIFIER_VALUE` pair to use depends on the `sdtype` of the variable, it does not apply to boolean and categorical variables, otherwise, they are:
 
 * `computer_representation` for numerical variables.  
 Allowed values are `"Float"`, `"Int8"`, `"Int16"`, `"Int32"`, `"Int64"`, `"UInt8"`, `"UInt16"`, `"UInt32"`, `"UInt64"`
 
 * `regex_format` for `id` variables.  
-The regex string should use Perl style regular expression syntax (cf. also the [Python documentation](https://docs.python.org/3/library/re.html)).
+The regex string should use Perl-style regular expression syntax (cf. also the [Python documentation](https://docs.python.org/3/library/re.html)).
 
 * `datetime_format` is **required** for datetime type variables.  
 The `SPECIFIER_VALUE` for this specifier is a string in [strftime format](https://docs.python.org/3/library/datetime.html#strftime-and-strptime-format-codes).
