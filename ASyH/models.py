@@ -151,5 +151,5 @@ def _init_iterative_scores(metadata_dict: Dict[str, any]):
     return_dict = {}
     for numerical in metadata_dict.variables_by_type('numerical'):
         return_dict[numerical] = ('', 0.0)
-        return_dict['categorical'] = ('', 0.0)
+    return_dict['categorical'] = ('', 0.0)
     return return_dict
