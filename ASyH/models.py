@@ -113,6 +113,7 @@ class GaussianCopulaModel(Model):
     def _tune_GCM_distributions(self, data: Data) -> Dict[str, str]:
         best_scores = _init_iterative_scores(data.metadata)
         numerical_vars = data.metadata.variables_by_type('numerical')
+        column_distributions = dict()
 
         for dist in sdv.single_table.copulas.GaussianCopulaSynthesizer._DISTRIBUTIONS:
             GCM_model = self.Regressed_GaussianCopulaSynthesizer(metadata=_get_metadata_from_data(data),
