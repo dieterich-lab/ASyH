@@ -132,7 +132,7 @@ class Report:
             real_data=self._input_data,
             synthetic_data=self._synthetic_data,
             column_name=column,
-            metadata=self._metadata
+            # metadata=self._metadata
         )
         fig.write_image(file_like, format='png')
 
