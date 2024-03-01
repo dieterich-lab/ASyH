@@ -9,7 +9,7 @@ from ASyH.metadata import Metadata
 from ASyH.pipelines \
     import CopulaGANPipeline, TVAEPipeline, \
     CTGANPipeline, GaussianCopulaPipeline
-from ASyH.dispatch import concurrent_dispatch
+from ASyH.dispatch import dispatch
 
 # import ASyH.metrics.anonymity
 # import ASyH.metrics
@@ -42,15 +42,18 @@ class Application:
         return self._best
 
     def synthesize(self, input_file,
-                   metadata=None, metadata_file=None, sample_size=-1):
+                   metadata=None, metadata_file=None,
+                   concurrency='full', sample_size=-1):
         '''Synthesize data using the best-scoring model.'''
         if self._best is None:
             self.process(input_file,
                          metadata_file=metadata_file,
+                         concurrency=concurrency,
                          metadata=metadata)
         return self._best.synthesize(sample_size)
 
-    def process(self, input_file, metadata_file=None, metadata=None):
+    def process(self, input_file, concurrency='full',
+                metadata_file=None, metadata=None):
         '''Process the default ASyH pipeline.'''
 
         if metadata_file is not None and metadata is not None:
@@ -60,7 +63,7 @@ class Application:
         if metadata_file is not None:
             metadata = Metadata()
             metadata.read(metadata_file)
-            return self.process(input_file, metadata=metadata)
+            return self.process(input_file, metadata=metadata, concurrency=concurrency)
 
         # use a default .json file when neither metadata_file nor metadata were given:
         if metadata is None:
@@ -77,9 +80,9 @@ class Application:
         input_data = Data()
         input_data.read(input_file)
 
-        return self.train(input_data, metadata)
+        return self.train(input_data, metadata, concurrency=concurrency)
 
-    def train(self, input_data, metadata):
+    def train(self, input_data, metadata, concurrency='full'):
         """Train each model in its own pipeline using input_data and metadata,
         score, select and return the best scoring model.
         """
@@ -100,7 +103,13 @@ class Application:
 
         self._add_scoring(sdmetrics_quality, pipelines=pipelines)
 
-        self._results = concurrent_dispatch(*pipelines)
+        grouped_pipelines = pipelines # serial, i.e. concurrency == 'none'
+        if concurrency == 'full':
+            grouped_pipelines = [pipelines]
+        elif concurrency == 'semi':
+            grouped_pipelines = [pipelines[:2], pipelines[2:]]
+
+        self._results = dispatch(grouped_pipelines)
 
         self._best = self._select_best(self._results, pipelines=pipelines)
 

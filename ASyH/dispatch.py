@@ -7,6 +7,16 @@ from multiprocessing import Process, Value
 def task(pipeline, retval):
     retval.value = pipeline.run()
 
+def dispatch(pipeline_groups):
+    results = []
+    for p in pipeline_groups:
+        if isinstance(p, list):
+            res = concurrent_dispatch(*p)
+            results.extend(res)
+        else:
+            res = p.run()
+            results.append(res)
+    return results
 
 def concurrent_dispatch(*pipelines):
     '''Run several ASyH pipelines concurrently with multiprocessing.Process.'''
