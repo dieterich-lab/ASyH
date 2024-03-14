@@ -118,31 +118,36 @@ class GaussianCopulaModel(Model):
         for dist in sdv.single_table.copulas.GaussianCopulaSynthesizer._DISTRIBUTIONS:
             GCM_model = self.Regressed_GaussianCopulaSynthesizer(metadata=_get_metadata_from_data(data),
                                                                  default_distribution=dist)
-            GCM_model.fit(data.data)
-            synth_data = GCM_model.sample(data.data.shape[0])
-            sdmetrics_report = sdmetrics.reports.single_table.QualityReport()
-            sdmetrics_report.generate(data.data,
-                                      synth_data,
-                                      data.metadata.metadata,
-                                      verbose=False)
+            try:
+                GCM_model.fit(data.data)
+                synth_data = GCM_model.sample(data.data.shape[0])
+                sdmetrics_report = sdmetrics.reports.single_table.QualityReport()
+                sdmetrics_report.generate(data.data,
+                                          synth_data,
+                                          data.metadata.metadata,
+                                          verbose=False)
 
-            # 'details' is a pandas dataframe:
-            details = sdmetrics_report.get_details(property_name='Column Shapes')
+                # 'details' is a pandas dataframe:
+                details = sdmetrics_report.get_details(property_name='Column Shapes')
 
-            # numerical variables use KSComplement, categorical/booleans use TVComplement:
-            # use the average score for categorical variables
-            categorical_score = details[details['Metric'] == 'TVComplement']['Score'].mean()
-            if categorical_score > best_scores['categorical'][1]:
-                best_scores['categorical'] = (dist, categorical_score)
-            # we want detailed fitting distributions for numerical variables
-            for num_var in numerical_vars:
-                score = details[details['Column'] == num_var]['Score'].values[0]
-                if score > best_scores[num_var][1]:
-                    best_scores[num_var] = (dist, score)
-                    # create the override_args
-                    column_distributions = {var: best_scores[var][0]
-                                            for var in best_scores
-                                            if var != 'categorical'}
+                # numerical variables use KSComplement, categorical/booleans use TVComplement:
+                # use the average score for categorical variables
+                categorical_score = details[details['Metric'] == 'TVComplement']['Score'].mean()
+                if categorical_score > best_scores['categorical'][1]:
+                    best_scores['categorical'] = (dist, categorical_score)
+                # we want detailed fitting distributions for numerical variables
+                for num_var in numerical_vars:
+                    score = details[details['Column'] == num_var]['Score'].values[0]
+                    if score > best_scores[num_var][1]:
+                        best_scores[num_var] = (dist, score)
+                        # create the override_args
+            except Exception as e:
+                printf(f'{e} encountered during fitting {dist} in GaussianCopulaModel._tune_GCM_distributions().')
+                printf('...skipping.')
+
+        column_distributions = {var: best_scores[var][0]
+                                for var in best_scores
+                                if var != 'categorical'}
 
         return {'numerical_distributions': column_distributions,
                 'default_distribution': best_scores['categorical'][0]}
