@@ -103,7 +103,7 @@ class Application:
 
         self._add_scoring(sdmetrics_quality, pipelines=pipelines)
 
-        grouped_pipelines = pipelines # serial, i.e. concurrency == 'none'
+        grouped_pipelines = pipelines  # serial, i.e. concurrency == 'none'
         if concurrency == 'full':
             grouped_pipelines = [pipelines]
         elif concurrency == 'semi':
