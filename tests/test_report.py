@@ -89,7 +89,7 @@ def default_report():
 
 @pytest.fixture
 def mock_sdmetrics(mocker):
-    def my_mock(real_data, synthetic_data, column_name, metadata):  # noqa
+    def my_mock(real_data, synthetic_data, column_name):  # noqa
         return FigureMock(column_name)
 
     mocker.patch('ASyH.report.sdmetrics.visualization.get_column_plot', new=my_mock)
