@@ -142,8 +142,8 @@ class GaussianCopulaModel(Model):
                         best_scores[num_var] = (dist, score)
                         # create the override_args
             except Exception as e:
-                printf(f'{e} encountered during fitting {dist} in GaussianCopulaModel._tune_GCM_distributions().')
-                printf('...skipping.')
+                print(f'{e} encountered during fitting {dist} in GaussianCopulaModel._tune_GCM_distributions().')
+                print('...skipping.')
 
         column_distributions = {var: best_scores[var][0]
                                 for var in best_scores
