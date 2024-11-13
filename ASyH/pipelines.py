@@ -1,7 +1,7 @@
 # ASyH Concrete Pipeline definitions
-
 from ASyH.pipeline import Pipeline
 from ASyH.models import CopulaGANModel, CTGANModel, GaussianCopulaModel, TVAEModel
+from ASyH.ctabgan_synthesizer import CTABGANSynthesizer
 
 
 class CopulaGANPipeline(Pipeline):
@@ -40,5 +40,5 @@ class CTABGANSynthesizerPipeline(Pipeline):
 
     def __init__(self, input_data):
         Pipeline.__init__(self,
-                        model=CTABGANSynthesizer(data=input_data),
+                        model=CTABGANSynthesizer(input_data=input_data),
                         input_data=input_data)
