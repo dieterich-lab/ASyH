@@ -34,3 +34,11 @@ class TVAEPipeline(Pipeline):
         Pipeline.__init__(self,
                           model=TVAEModel(data=input_data),
                           input_data=input_data)
+
+
+class CTABGANSynthesizerPipeline(Pipeline):
+
+    def __init__(self, input_data):
+        Pipeline.__init__(self,
+                        model=CTABGANSynthesizer(data=input_data),
+                        input_data=input_data)

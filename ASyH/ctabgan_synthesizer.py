@@ -340,6 +340,7 @@ def weights_init(m):
 
 class CTABGANSynthesizer:
     def __init__(self,
+                 input_data=[],
                  class_dim=(256, 256, 256, 256),
                  random_dim=100,
                  num_channels=64,
@@ -347,7 +348,7 @@ class CTABGANSynthesizer:
                  batch_size=500,
                  epochs=150):
                  
-
+        self.data = input_data
         self.random_dim = random_dim
         self.class_dim = class_dim
         self.num_channels = num_channels
@@ -518,7 +519,7 @@ class CTABGANSynthesizer:
         output_info = self.transformer.output_info
         steps = n // self.batch_size + 1
         
-        data = []
+        data = self.data
         
         for i in range(steps):
             noisez = torch.randn(self.batch_size, self.random_dim, device=self.device)
