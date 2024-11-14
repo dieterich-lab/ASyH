@@ -421,7 +421,5 @@ class ImageTransformer():
         return data.view(-1, 1, self.height, self.height)
 
     def inverse_transform(self, data):
-        
         data = data.view(-1, self.height * self.height)
-
         return data
