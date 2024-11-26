@@ -21,6 +21,7 @@ class DataTransformer():
     
         for index in range(self.train_data.shape[1]):
             column = self.train_data.iloc[:,index]
+            import pdb; pdb.set_trace()
             if index in self.categorical_columns:
                 if index in self.non_categorical_columns:
                     meta.append({
@@ -56,6 +57,36 @@ class DataTransformer():
 
         return meta
 
+
+def _parse(age_col):
+    """
+    Parses a list of strings containing ages and extracts the integer values.
+
+    Parameters:
+        age_col (list of str): List of strings where each string contains an age.
+
+    Returns:
+        list of int: List of extracted integer ages.
+    """
+    # Initialize the list that will contain ages as integers
+    new_col = [None] * len(age_col)
+    
+    # Loop through the input list
+    for i, entry in enumerate(age_col):
+        # Regex pattern to find a substring containing one or more digits
+        pat = r'\d+'  # Matches one or more digits
+        # Search for the numeric substring in the current entry
+        substr = re.search(pat, entry)
+        if substr:  # Check if a match is found
+            # Convert the matched substring (digits) into an integer
+            new_col[i] = int(substr.group())
+        else:
+            # Handle cases where no digits are found (optional: raise an error or log)
+            new_col[i] = None  # Or raise ValueError(f"No digits found in: {entry}")
+    
+    return new_col
+
+
     def fit(self):
         data = self.train_data.values
         self.meta = self.get_metadata()
@@ -66,6 +97,18 @@ class DataTransformer():
         self.components = []
         self.filter_arr = []
         for id_, info in enumerate(self.meta):
+            ## ? INSERT here below the code for checking the type of data[:, id_]
+            ## then convert it to numeric if it is string ?
+            ## FIXME
+            # Check if the numpy array contains non-numeric data like strings
+            if np.issubdtype(data[:, id_].dtype, np.object_) and isinstance(data[:, id_][0], str):
+                # Apply the _parse method to the elements of the array
+                try:
+                    data[:, id_] = np.array(_parse(data[:, id_]), dtype=np.int32)
+                except Exception as e:
+                    raise ValueError(f"Error parsing column {id_}: {e}")
+
+                
             if info['type'] == "continuous":
                 if id_ not in self.general_columns:
                   gm = BayesianGaussianMixture(
@@ -73,9 +116,11 @@ class DataTransformer():
                       weight_concentration_prior_type='dirichlet_process',
                       weight_concentration_prior=0.001, 
                       max_iter=100,n_init=1, random_state=42)
-                  gm.fit(data[:, id_].reshape([-1, 1]))
-                  mode_freq = (pd.Series(gm.predict(data[:, id_].reshape([-1, 1]))).value_counts().keys())
-                  model.append(gm)
+                  import pdb; pdb.set_trace()
+                  try:
+                    gm.fit(data[:, id_].reshape([-1, 1]))
+                    mode_freq = (pd.Series(gm.predict(data[:, id_].reshape([-1, 1]))).value_counts().keys())
+                    model.append(gm)
                   old_comp = gm.weights_ > self.eps
                   comp = []
                   for i in range(self.n_clusters):
@@ -144,9 +189,21 @@ class DataTransformer():
         values = []
         mixed_counter = 0
         for id_, info in enumerate(self.meta):
+            ## ? Insert here the code to check the data type of current column
+            ## then convert it to the numeric if it is str ?
+            ## FIXME
+            # Check if the numpy array contains non-numeric data like strings
+            if np.issubdtype(data[:, id_].dtype, np.object_) and isinstance(data[:, id_][0], str):
+                # Apply the _parse method to the elements of the array
+                try:
+                    data[:, id_] = np.array(_parse(data[:, id_]), dtype=np.int32)
+                except Exception as e:
+                    raise ValueError(f"Error parsing column {id_}: {e}")
             current = data[:, id_]
+            import pdb; pdb.set_trace()
             if info['type'] == "continuous":
-                if id_ not in self.general_columns: 
+                ## REVIEW 
+                if id_ not in self.general_columns:
                   current = current.reshape([-1, 1])
                   means = self.model[id_].means_.reshape((1, self.n_clusters))
                   stds = np.sqrt(self.model[id_].covariances_).reshape((1, self.n_clusters))
