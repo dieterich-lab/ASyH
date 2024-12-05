@@ -2,6 +2,8 @@ import numpy as np
 import pandas as pd
 import torch
 from sklearn.mixture import BayesianGaussianMixture
+# import pudb
+import pdb
 
 class DataTransformer():
     
@@ -15,13 +17,17 @@ class DataTransformer():
         self.general_columns = general_list
         self.non_categorical_columns= non_categorical_list
         
+
     def get_metadata(self):
-        
         meta = []
-    
         for index in range(self.train_data.shape[1]):
+            ## REVIEW : added the checks for data type of dataframe columns
+            # and if it is either object or string -> modified by the parser method
             column = self.train_data.iloc[:,index]
-            import pdb; pdb.set_trace()
+            col_dtype = str(column.dtype)
+            if 'str' in col_dtype or 'object' in col_dtype:
+                column = self._parse(column)
+            # import pdb; pdb.set_trace()
             if index in self.categorical_columns:
                 if index in self.non_categorical_columns:
                     meta.append({
@@ -58,33 +64,37 @@ class DataTransformer():
         return meta
 
 
-def _parse(age_col):
-    """
-    Parses a list of strings containing ages and extracts the integer values.
+    # def _fit(df):
 
-    Parameters:
-        age_col (list of str): List of strings where each string contains an age.
 
-    Returns:
-        list of int: List of extracted integer ages.
-    """
-    # Initialize the list that will contain ages as integers
-    new_col = [None] * len(age_col)
-    
-    # Loop through the input list
-    for i, entry in enumerate(age_col):
-        # Regex pattern to find a substring containing one or more digits
-        pat = r'\d+'  # Matches one or more digits
-        # Search for the numeric substring in the current entry
-        substr = re.search(pat, entry)
-        if substr:  # Check if a match is found
-            # Convert the matched substring (digits) into an integer
-            new_col[i] = int(substr.group())
-        else:
-            # Handle cases where no digits are found (optional: raise an error or log)
-            new_col[i] = None  # Or raise ValueError(f"No digits found in: {entry}")
-    
-    return new_col
+    def _parse(self, age_col):
+        """
+        Parses a list of strings containing ages and extracts the integer values.
+
+        Parameters:
+            age_col (list of str): List of strings where each string contains an age.
+
+        Returns:
+            list of int: List of extracted integer ages.
+        """
+        import re
+        # Initialize the list that will contain ages as integers
+        new_col = [None] * len(age_col)
+        
+        # Loop through the input list
+        for i, entry in enumerate(age_col):
+            # Regex pattern to find a substring containing one or more digits
+            pat = r'\d+'  # Matches one or more digits
+            # Search for the numeric substring in the current entry
+            substr = re.search(pat, entry)
+            if substr:  # Check if a match is found
+                # Convert the matched substring (digits) into an integer
+                new_col[i] = int(substr.group())
+            else:
+                # Handle cases where no digits are found (optional: raise an error or log)
+                new_col[i] = None  # Or raise ValueError(f"No digits found in: {entry}")
+                
+        return new_col
 
 
     def fit(self):
@@ -98,16 +108,15 @@ def _parse(age_col):
         self.filter_arr = []
         for id_, info in enumerate(self.meta):
             ## ? INSERT here below the code for checking the type of data[:, id_]
-            ## then convert it to numeric if it is string ?
+            ## then convert it to numeric if it is a string ?
             ## FIXME
             # Check if the numpy array contains non-numeric data like strings
-            if np.issubdtype(data[:, id_].dtype, np.object_) and isinstance(data[:, id_][0], str):
+            if isinstance(data[:, id_][0], str):
                 # Apply the _parse method to the elements of the array
                 try:
-                    data[:, id_] = np.array(_parse(data[:, id_]), dtype=np.int32)
+                    data[:, id_] = pd.Series(self._parse(data[:, id_]))
                 except Exception as e:
                     raise ValueError(f"Error parsing column {id_}: {e}")
-
                 
             if info['type'] == "continuous":
                 if id_ not in self.general_columns:
@@ -116,11 +125,14 @@ def _parse(age_col):
                       weight_concentration_prior_type='dirichlet_process',
                       weight_concentration_prior=0.001, 
                       max_iter=100,n_init=1, random_state=42)
-                  import pdb; pdb.set_trace()
+                #   import pdb; pdb.set_trace()
                   try:
                     gm.fit(data[:, id_].reshape([-1, 1]))
                     mode_freq = (pd.Series(gm.predict(data[:, id_].reshape([-1, 1]))).value_counts().keys())
                     model.append(gm)
+                  except Exception as e:
+                    raise ValueError(f"Error parsing column {id_}: {e}")
+            
                   old_comp = gm.weights_ > self.eps
                   comp = []
                   for i in range(self.n_clusters):
@@ -184,6 +196,7 @@ def _parse(age_col):
                 self.output_info += [(info['size'], 'softmax')]
                 self.output_dim += info['size']
         self.model = model
+        
 
     def transform(self, data, ispositive = False, positive_list = None):
         values = []
@@ -196,11 +209,11 @@ def _parse(age_col):
             if np.issubdtype(data[:, id_].dtype, np.object_) and isinstance(data[:, id_][0], str):
                 # Apply the _parse method to the elements of the array
                 try:
-                    data[:, id_] = np.array(_parse(data[:, id_]), dtype=np.int32)
+                    data[:, id_] = np.array(self._parse(data[:, id_]), dtype=np.int32)
                 except Exception as e:
                     raise ValueError(f"Error parsing column {id_}: {e}")
             current = data[:, id_]
-            import pdb; pdb.set_trace()
+            # import pdb; pdb.set_trace()
             if info['type'] == "continuous":
                 ## REVIEW 
                 if id_ not in self.general_columns:
@@ -242,7 +255,6 @@ def _parse(age_col):
                   for id,val in enumerate(largest_indices):
                       re_ordered_phot[:,id] = probs_onehot[:,val]
                 
-                  
                   values += [features, re_ordered_phot]
                   
                 else:
@@ -385,6 +397,10 @@ def _parse(age_col):
                   tmp = u * 4 * std_t + mean_t
                                     
                   for idx,val in enumerate(tmp):
+                     pdb.set_trace() 
+                    ## FIXME
+                    # stack_trace_396_241205.txt
+                    # (when called )
                      if (val < info["min"]) | (val > info['max']):
                          invalid_ids.append(idx)
                   
