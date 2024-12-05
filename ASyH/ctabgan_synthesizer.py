@@ -7,7 +7,7 @@ from torch.optim import Adam
 from torch.nn import functional as F
 from torch.nn import (Dropout, LeakyReLU, Linear, Module, ReLU, Sequential,
 Conv2d, ConvTranspose2d, Sigmoid, init, BCELoss, CrossEntropyLoss,SmoothL1Loss,LayerNorm)
-from transformer_forest_diffusion import ImageTransformer,DataTransformer
+from ASyH.transformer_ctabgan import ImageTransformer,DataTransformer
 from tqdm import tqdm
 
 
@@ -50,6 +50,7 @@ class Classifier(Module):
             return self.seq(new_imp).view(-1), label
         else:
             return self.seq(new_imp), label
+        
 
 def apply_activate(data, output_info):
     data_t = []
@@ -63,6 +64,8 @@ def apply_activate(data, output_info):
             ed = st + item[0]
             data_t.append(F.gumbel_softmax(data[:, st:ed], tau=0.2))
             st = ed
+    output = torch.cat(data_t, dim=1)
+    import pdb; pdb.set_trace();
     return torch.cat(data_t, dim=1)
 
 def get_st_ed(target_col_index,output_info):
@@ -128,13 +131,15 @@ class Cond(object):
         self.p = np.zeros((counter, maximum_interval(output_info)))  
         self.p_sampling = []
         for item in output_info:
+            # import pdb; pdb.set_trace()
             if item[1] == 'tanh':
                 st += item[0]
                 continue
-            elif item[1] == 'softmax': 
+            elif item[1] == 'softmax':
                 ed = st + item[0]
-                tmp = np.sum(data[:, st:ed], axis=0)  
-                tmp_sampling = np.sum(data[:, st:ed], axis=0)     
+                tmp = np.sum(data[:, st:ed], axis=0).astype(np.float32)
+                tmp_sampling = np.sum(data[:, st:ed], axis=0).astype(np.float32)
+                import pdb; pdb.set_trace()     
                 tmp = np.log(tmp + 1)  
                 tmp = tmp / np.sum(tmp) 
                 tmp_sampling = tmp_sampling / np.sum(tmp_sampling)
@@ -240,6 +245,7 @@ class Discriminator(Module):
     def forward(self, input):
         return (self.seq(input)), self.seq_info(input)
 
+
 class Generator(Module):
     def __init__(self, side, layers):
         super(Generator, self).__init__()
@@ -248,6 +254,7 @@ class Generator(Module):
 
     def forward(self, input_):
         return self.seq(input_)
+    
 
 def determine_layers_disc(side, num_channels):
     assert side >= 4 and side <= 64
@@ -297,6 +304,7 @@ def determine_layers_gen(side, random_dim, num_channels):
 
     layers_G = [ConvTranspose2d(random_dim, layer_dims[-1][0], layer_dims[-1][1], 1, 0, output_padding=0, bias=False)]
 
+    ## REVIEW
     for prev, curr, ln in zip(reversed(layer_dims), reversed(layer_dims[:-1]), layerNorms):
         layers_G += [LayerNorm(ln), ReLU(True), ConvTranspose2d(prev[0], curr[0], 4, 2, 1, output_padding=0, bias=True)]
     return layers_G
@@ -338,6 +346,7 @@ def weights_init(m):
         init.normal_(m.weight.data, 1.0, 0.02)
         init.constant_(m.bias.data, 0)
 
+
 class CTABGANSynthesizer:
     def __init__(self,
                  class_dim=(256, 256, 256, 256),
@@ -345,7 +354,8 @@ class CTABGANSynthesizer:
                  num_channels=64,
                  l2scale=1e-5,
                  batch_size=500,
-                 epochs=150):
+                 epochs=150,
+                 **kwargs):
                  
 
         self.random_dim = random_dim
@@ -358,11 +368,19 @@ class CTABGANSynthesizer:
         self.epochs = epochs
         self.device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
+
+    # TODO: create private fit method ?
+    # def _fit(self, train_data=pd.):
+    #     ...
+
+
     def fit(self, train_data=pd.DataFrame, categorical=[], mixed={}, general=[], non_categorical=[]):
 
+        # TODO: replace datatransformer with default SDV method
         self.transformer = DataTransformer(train_data=train_data, categorical_list=categorical, mixed_dict=mixed, general_list=general, non_categorical_list=non_categorical)
         self.transformer.fit() 
         train_data = self.transformer.transform(train_data.values)
+        # import pdb; pdb.set_trace();
         data_sampler = Sampler(train_data, self.transformer.output_info)
         data_dim = self.transformer.output_dim
         self.cond_generator = Cond(train_data, self.transformer.output_info)
@@ -411,7 +429,7 @@ class CTABGANSynthesizer:
         for i in tqdm(range(self.epochs)):
             for id_ in range(steps_per_epoch):
                 
-                for _ in range(ci):
+                for _ in range(ci): # why ci? it is == 1, seems meaningless to use the loop here
                     noisez = torch.randn(self.batch_size, self.random_dim, device=self.device)
                     condvec = self.cond_generator.sample_train(self.batch_size)
 
