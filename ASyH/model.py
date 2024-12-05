@@ -4,6 +4,9 @@
 #   read() and save()
 
 from datetime import datetime
+import re
+import subprocess
+
 import os.path
 from abc import ABC, abstractmethod
 from typing import Optional, Callable, Any, Dict
@@ -12,6 +15,25 @@ from pandas import DataFrame
 from sdv.single_table.base import BaseSingleTableSynthesizer
 
 from ASyH.data import Data
+
+
+class RandBaseSingleTableSynthesizer(BaseSingleTableSynthesizer):
+    def __init__(self):
+        super(BaseSingleTableSynthesizer, self).__init__()
+
+
+    def _set_random_state(self, random_state):
+        # self._model.set_random
+        curr_time = datetime.datetime.now()
+        # random_state = int(curr_time.timestamp() * 1e+6)
+        timestamp_r = str(curr_time.timestamp())[::-1]
+        random_a = int(timestamp_r[:6] + timestamp_r[7:])
+        checksum = subprocess.check_output(['cksum', '/var/log/lastlog'])
+        random_b = int("".join(re.findall(r'\d', str(checksum))))
+        random_state = random_a + random_b
+        self._model_set_random_state(random_state)
+        self._random_state_set = True
+
 
 
 class Model(ABC):
@@ -117,7 +139,7 @@ class ModelX(ABC):
             override_args: Optional[Dict[str, Any]] = None
     ):
         self._ext_model = None
-        self._ext_model_class = sdv_model_class
+        self._ext_model_class = ext_model_class
         self._model_type = ext_model_class.__name__
         self._override_args = override_args
 
