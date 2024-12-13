@@ -9,6 +9,7 @@ from torch.nn import (Dropout, LeakyReLU, Linear, Module, ReLU, Sequential,
 Conv2d, ConvTranspose2d, Sigmoid, init, BCELoss, CrossEntropyLoss,SmoothL1Loss,LayerNorm)
 from ASyH.transformer_ctabgan import ImageTransformer,DataTransformer
 from tqdm import tqdm
+import pudb
 
 
 class Classifier(Module):
@@ -356,7 +357,6 @@ class CTABGANSynthesizer:
                  batch_size=500,
                  epochs=150,
                  **kwargs):
-                 
 
         self.random_dim = random_dim
         self.class_dim = class_dim
@@ -367,11 +367,6 @@ class CTABGANSynthesizer:
         self.batch_size = batch_size
         self.epochs = epochs
         self.device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-
-
-    # TODO: create private fit method ?
-    # def _fit(self, train_data=pd.):
-    #     ...
 
 
     def fit(self, train_data=pd.DataFrame, categorical=[], mixed={}, general=[], non_categorical=[]):
@@ -545,6 +540,7 @@ class CTABGANSynthesizer:
                 c = condvec
                 c = torch.from_numpy(c).to(self.device)
                 noisez = torch.cat([noisez, c], dim=1)
+            ## REVIEW (look at stack_trace stack_trace_396_241205.txt)
             noisez =  noisez.view(self.batch_size,self.random_dim+self.cond_generator.n_opt,1,1)
                 
             fake = self.generator(noisez)

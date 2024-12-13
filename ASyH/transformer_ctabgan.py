@@ -3,7 +3,10 @@ import pandas as pd
 import torch
 from sklearn.mixture import BayesianGaussianMixture
 # import pudb
+import rdt
+
 import pdb
+
 
 class DataTransformer():
     
@@ -64,7 +67,20 @@ class DataTransformer():
         return meta
 
 
-    # def _fit(df):
+    # TODO: create private fit method ?
+    def _fit(self, processed_data):
+        """Fit the model to the table.
+
+        Args:
+            processed_data (pandas.DataFrame):
+                Data to be learned.
+        """
+        # log_numerical_distributions_error(
+        # self.numerical_distributions, processed_data.columns, LOGGER)
+        gaussian_normalizer_config = self._create_gaussian_normalizer_config(processed_data)
+        self._gaussian_normalizer_hyper_transformer = rdt.HyperTransformer()
+        self._gaussian_normalizer_hyper_transformer.set_config(gaussian_normalizer_config)
+        processed_data = self._gaussian_normalizer_hyper_transformer.fit_transform(processed_data)
 
 
     def _parse(self, age_col):
@@ -198,9 +214,10 @@ class DataTransformer():
         self.model = model
         
 
-    def transform(self, data, ispositive = False, positive_list = None):
+    def transform(self, data0, ispositive = False, positive_list = None):
         values = []
         mixed_counter = 0
+        data = self._fit(data0)
         for id_, info in enumerate(self.meta):
             ## ? Insert here the code to check the data type of current column
             ## then convert it to the numeric if it is str ?

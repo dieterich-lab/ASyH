@@ -22,7 +22,9 @@ class RandBaseSingleTableSynthesizer(BaseSingleTableSynthesizer):
         super(BaseSingleTableSynthesizer, self).__init__()
 
 
+    ## TODO: remake using the module secrets
     def _set_random_state(self, random_state):
+        MOD = 65536
         # self._model.set_random
         curr_time = datetime.datetime.now()
         # random_state = int(curr_time.timestamp() * 1e+6)
@@ -30,8 +32,8 @@ class RandBaseSingleTableSynthesizer(BaseSingleTableSynthesizer):
         random_a = int(timestamp_r[:6] + timestamp_r[7:])
         checksum = subprocess.check_output(['cksum', '/var/log/lastlog'])
         random_b = int("".join(re.findall(r'\d', str(checksum))))
-        random_state = random_a + random_b
-        self._model_set_random_state(random_state)
+        random_state = (random_a + random_b) % MOD
+        self._model.set_random_state(random_state)
         self._random_state_set = True
 
 

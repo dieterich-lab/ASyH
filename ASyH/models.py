@@ -1,5 +1,6 @@
 '''ASyH Concrete Model-Derived Classes'''
 from typing import Optional, Dict, Any
+import re
 
 import sdmetrics
 import rdt
@@ -11,8 +12,64 @@ import rdt
 import sdv
 from ASyH.data import Data
 from ASyH.model import Model, ModelX
-from ASyH.ctabgan_synthesiter import *
+from ASyH.ctabgan_synthesizer import CTABGANSynthesizer
 from ASyH.transformer_ctabgan import *
+import time
+import subprocess
+import datetime
+
+RAND_MAX = 65536
+
+
+class CTGAN2(sdv.single_table.CTGANSynthesizer):
+    _model_sdtype_transformers = {
+        'categorical': None,
+        'boolean': None
+    }
+    def __init__(self, metadata, enforce_min_max_values=True, enforce_rounding=True, locales=None,
+                 embedding_dim=128, generator_dim=(256, 256), discriminator_dim=(256, 256),
+                 generator_lr=2e-4, generator_decay=1e-6, discriminator_lr=2e-4,
+                 discriminator_decay=1e-6, batch_size=500, discriminator_steps=1,
+                 log_frequency=True, verbose=False, epochs=300, pac=10, cuda=True):
+        # def __init__(self, meta, **kwargs):
+        #     super(sdv.single_table.CTGANSynthesizer, self).__init__(meta, **kwargs)
+
+        self._model_kwargs = {
+            'embedding_dim': embedding_dim,
+            'generator_dim': generator_dim,
+            'discriminator_dim': discriminator_dim,
+            'generator_lr': generator_lr,
+            'generator_decay': generator_decay,
+            'discriminator_lr': discriminator_lr,
+            'discriminator_decay': discriminator_decay,
+            'batch_size': batch_size,
+            'discriminator_steps': discriminator_steps,
+            'log_frequency': log_frequency,
+            'verbose': verbose,
+            'epochs': epochs,
+            'pac': pac,
+            'cuda': cuda
+        }
+
+        super().__init__(metadata, enforce_min_max_values=True, enforce_rounding=True, locales=None,
+                 embedding_dim=128, generator_dim=(256, 256), discriminator_dim=(256, 256),
+                 generator_lr=2e-4, generator_decay=1e-6, discriminator_lr=2e-4,
+                 discriminator_decay=1e-6, batch_size=500, discriminator_steps=1,
+                 log_frequency=True, verbose=False, epochs=300, pac=10, cuda=True)
+
+
+    ## TODO: remake using the module secrets
+    def _set_random_state(self):
+        # self._model.set_random
+        curr_time = datetime.datetime.now()
+        # random_state = int(curr_time.timestamp() * 1e+6)
+        timestamp_r = str(curr_time.timestamp())[::-1]
+        random_a = int(timestamp_r[:6] + timestamp_r[7:])
+        checksum = subprocess.check_output(['cksum', '/var/log/lastlog'])
+        random_b = int("".join(re.findall(r'\d', str(checksum))))
+        random_state = (random_a + random_b) % RAND_MAX
+        self._model.set_random_state(random_state)
+        self._random_state_set = True
 
 
 class TVAEModel(Model):
@@ -50,7 +107,8 @@ class CTGANModel(Model):
 
     def __init__(self, data: Optional[Data] = None, override_args=None):
         Model.__init__(self,
-                       sdv_model_class=sdv.single_table.CTGANSynthesizer,
+                       # sdv_model_class=sdv.single_table.CTGANSynthesizer,
+                       sdv_model_class=CTGAN2,
                        data=data,
                        override_args=override_args)
 
@@ -150,6 +208,29 @@ class GaussianCopulaModel(Model):
                 'default_distribution': best_scores['categorical'][0]}
 
 
+class CTABGAN_Model(Model):
+    def __init__(self, data=Optional[Data], override_args=None):
+        Model.__init__(self,
+                      sdv_model_class=CTABGANSynthesizer,
+                      data=data,
+                      override_args=override_args)
+    
+
+    def adapted_arguments(self, data: Optional[Data] = None) -> Dict[str, Any]:
+        '''Create SDV model specific argument dict to pass to the constructor.
+        This method is meant to adapt the CTGAN sdv model internals to the
+        input data.
+        The method returns a dict of keyword arguments to be passed to the
+        specific SDV model constructor with the ** operator:
+        sdv_model_class(**adapt_arguments(data)) => adapted SDV model'''
+        data_size = len(data.data.columns)
+        dim = 4*data_size
+        hidden_layer_dims = (dim, dim)
+        return {'metadata': _get_metadata_from_data(data),
+                'generator_dim': hidden_layer_dims,
+                'discriminator_dim': hidden_layer_dims}
+
+
 class CTABGAN():
     def __init__(self,
                  pd_data,
@@ -169,14 +250,12 @@ class CTABGAN():
         self.integer_columns = integer_columns
 
     def fit(self):
-
         start_time = time.time()
         self.data_prep = DataPrep(self.raw_df,self.categorical_columns,self.log_columns,self.mixed_columns,self.general_columns,self.non_categorical_columns,self.integer_columns)
         self.synthesizer.fit(train_data=self.data_prep.df, categorical = self.data_prep.column_types["categorical"], mixed = self.data_prep.column_types["mixed"],
         general = self.data_prep.column_types["general"], non_categorical = self.data_prep.column_types["non_categorical"])
         end_time = time.time()
         print('Finished training in',end_time-start_time," seconds.")
-
 
     def generate_samples(self):
 
