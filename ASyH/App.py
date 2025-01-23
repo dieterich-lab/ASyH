@@ -11,6 +11,8 @@ from ASyH.pipelines \
     CTGANPipeline, GaussianCopulaPipeline
 from ASyH.dispatch import concurrent_dispatch
 
+from fancyimpute import IterativeImputer
+
 # import ASyH.metrics.anonymity
 # import ASyH.metrics
 
@@ -32,6 +34,13 @@ class Application:
             pass
         for pipeline in pipelines:
             pipeline.add_scoring(scoring_function)
+
+    def _add_preprocessing(self, preprocess_function, pipelines=None):
+        '''Add a scoring function to all pipelines.'''
+        if pipelines is None:
+            pass
+        for pipeline in pipelines:
+            pipeline.add_preprocessing(preprocess_function)
 
     def _select_best(self, results, pipelines=None):
         '''Select the best-scoring model'''
@@ -90,6 +99,11 @@ class Application:
                      CopulaGANPipeline(input_data),
                      GaussianCopulaPipeline(input_data)]
 
+        def preprocess_impute(input_data):
+            MICE = IterativeImputer(verbose=False)
+            input_data_2 = MICE.fit_transform(input_data)
+            return input_data_2
+
         def sdmetrics_quality(input_data, synth_data):
             report = sdmetrics.reports.single_table.QualityReport()
             report.generate(input_data.data,
@@ -97,6 +111,8 @@ class Application:
                             input_data.metadata.metadata,
                             verbose=False)
             return report.get_score()
+
+        self._add_preprocessing(preprocess_impute, pipeline=pipelines)
 
         self._add_scoring(sdmetrics_quality, pipelines=pipelines)
 
