@@ -2,6 +2,8 @@
 
 ## Overview
 
+
+A data protection tool that utilizes generative machine learning models to create synthetic datasets, safeguarding sensitive patient information.
 The ASyH is a software helping Clinics as holders of large quantities of highly restricted personal health data to provide the Medical Data Community with realistic datasets without the breach of privacy.  It does this by synthesizing data with Machine Learning techniques which preserve data distribution and correlation while adding as much variation to the synthetic data, in order for it to have no resemblance to any of the original patient data entries.
 
 For synthesis, metrics and quality assurance we will mainly use the [Synthetic Data Vault](https://sdv.dev) ([github](https://github.com/sdv-dev/SDV)).
@@ -15,6 +17,15 @@ Using pip, the easiest way to install/upgrade ASyH is
 ## Usage
 
 The most basic use case for ASyH is to create an ASyH Application object and call synthesize() to get a synthetic dataset from the best-performing SDV model/synthesizer (one of CopulaGAN, CTGAN, GaussianCopula, or TVAE [cf. [the SDV documentation](https://docs.sdv.dev/sdv/single-table-data/modeling/synthesizers)]).  The input original dataset should be provided as a pandas DataFrame, the synthesized dataset is output as pandas DataFrame as well.  For identification of numerical and categorical variables, a metadata file in JSON format needs to be provided (see below).
+
+
+### With CMD interface of the launcher run_asyh_app.py
+The following flags are available so far via the CMD of the launcher "run_asyh_app.py"
+- "--input_name_root" : the name of the source table without its extension
+- "--input_format" : what file format is used (CSV by default)
+- "--metadata_file" : the name of the file with stored metadata
+- "--output_name_root" : how the output file would be named
+- "--to-preprocess" : boolean option, if the input shall be preprocessed, e.g. imputed missing values
 
 ```python
 import ASyH
