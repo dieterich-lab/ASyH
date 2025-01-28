@@ -24,9 +24,10 @@ class Application:
     def model(self):
         return self._best
 
-    def __init__(self):
+    def __init__(self, preprocess=False):
         self._results = []
         self._best = None
+        self._preprocess = preprocess
 
     def _add_scoring(self, scoring_function, pipelines=None):
         '''Add a scoring function to all pipelines.'''
@@ -36,11 +37,18 @@ class Application:
             pipeline.add_scoring(scoring_function)
 
     def _add_preprocessing(self, preprocess_function, pipelines=None):
-        '''Add a scoring function to all pipelines.'''
+        '''Add a preprocessing function to the pipeline.'''
         if pipelines is None:
             pass
         for pipeline in pipelines:
             pipeline.add_preprocessing(preprocess_function)
+
+    def _add_postprocessing(self, postprocess_function, pipeline=None):
+        '''Add a postprocessing function to the pipeline.'''
+        if pipelines is None:
+            pass
+        for pipeline in pipelines:
+            pipeline.add_postprocessing(postprocess_function)
 
     def _select_best(self, results, pipelines=None):
         '''Select the best-scoring model'''
@@ -103,6 +111,11 @@ class Application:
             MICE = IterativeImputer(verbose=False)
             input_data_2 = MICE.fit_transform(input_data)
             return input_data_2
+        
+        def postprocess_function(synth_data):
+            pass
+            ...
+            return post_data
 
         def sdmetrics_quality(input_data, synth_data):
             report = sdmetrics.reports.single_table.QualityReport()
@@ -113,6 +126,8 @@ class Application:
             return report.get_score()
 
         self._add_preprocessing(preprocess_impute, pipeline=pipelines)
+
+        self._add_postprocessing(postprocess_function, pipelines)
 
         self._add_scoring(sdmetrics_quality, pipelines=pipelines)
 

@@ -36,6 +36,7 @@ parser.add_argument("--input_name_root", dest="INPUT_NAME_ROOT", type=str)
 parser.add_argument("--input_format", dest="input_format", type=str)
 parser.add_argument("--metadata_file", dest="METADATA_FILE", type=str)
 parser.add_argument("--output_name_root", dest="OUTPUT_NAME_ROOT", type=str)
+parser.add_argument("--to-preprocess", dest="PREPROCESS", type=bool)
 
 
 def readData(input_file, ext, **kwargs) -> pd.DataFrame:
@@ -60,7 +61,7 @@ if __name__ == '__main__':
     MODEL_FILENAME = OUTPUT_NAME + '.pkl'
     # pdb.set_trace()
 
-    asyh = ASyH.Application()
+    asyh = ASyH.Application(preprocess=args.PREPROCESS)
 
 
     # Reporting
