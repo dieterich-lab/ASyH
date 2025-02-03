@@ -19,7 +19,7 @@ Using pip, the easiest way to install/upgrade ASyH is
 The most basic use case for ASyH is to create an ASyH Application object and call synthesize() to get a synthetic dataset from the best-performing SDV model/synthesizer (one of CopulaGAN, CTGAN, GaussianCopula, or TVAE [cf. [the SDV documentation](https://docs.sdv.dev/sdv/single-table-data/modeling/synthesizers)]).  The input original dataset should be provided as a pandas DataFrame, the synthesized dataset is output as pandas DataFrame as well.  For identification of numerical and categorical variables, a metadata file in JSON format needs to be provided (see below).
 
 
-### With CMD interface of the launcher run_asyh_app.py
+### CMD interface of the launcher run_asyh_app.py
 The following flags are available so far via the CMD of the launcher "run_asyh_app.py"
 - "--input_name_root" : the name of the source table without its extension
 - "--input_format" : what file format is used (CSV by default)
@@ -27,6 +27,17 @@ The following flags are available so far via the CMD of the launcher "run_asyh_a
 - "--output_name_root" : how the output file would be named
 - "--to-preprocess" : boolean option, if the input shall be preprocessed, e.g. imputed missing values
 
+#### Examples of command-line usages
+The basic usage for making a new table based on reference tabular dataset:
+```bash
+$ python3 run_asyh_app.py --input_name_root src_table --input_format csv --metadata_file metadata_table.json --output_name_root new_table
+```
+If you need to make pre-processing pipeline work too:
+```bash
+$ python3 run_asyh_app.py --input_name_root src_table --input_format csv --metadata_file metadata_table.json --output_name_root new_table --to-preprocess
+```
+
+### Usage with Python
 ```python
 import ASyH
 
@@ -97,6 +108,24 @@ The regex string should use Perl-style regular expression syntax (cf. also the [
 
 * `datetime_format` is **required** for datetime type variables.  
 The `SPECIFIER_VALUE` for this specifier is a string in [strftime format](https://docs.python.org/3/library/datetime.html#strftime-and-strptime-format-codes).
+
+
+## Pre-processing pipeline
+Primary function is to fill in the NaNs with adequate values depending on the
+column data type.  In case of an input table with lower entropy density, its
+usage is more justifiable.  The core method is iterative imputation based on a
+strategy for imputing missing values by modeling each feature with missing
+values as a function of other features in a round-robin fashion.  The
+implementation included in the Python module `fancyimpute` is used.
+
+
+## Post-processing pipeline
+To be implemented soon. Its main purpose is to detect and correct entries that do not
+fit in the acceptable range of a column distribution, i.e. lies 1.5 IQR below
+the first quartile or more than 1.5 IQR above the third quartile.  Additional
+functionality is to carry out some meta-statistical analysis and to model
+column distributions.
+
 
 ## Development
 
