@@ -36,7 +36,7 @@ pipeline {
             cobertura coberturaReportFile: 'coverage.xml'
         }
         failure {
-            emailext to: "tim.johann@uni-heidelberg.de",
+            emailext to: "german.sergei@uni-heidelberg.de",
             subject: "jenkins build:${currentBuild.currentResult}: ${env.JOB_NAME}",
             body: "${currentBuild.currentResult}: Job ${env.JOB_NAME}\nMore Info can be found here: ${env.BUILD_URL}"
         }
