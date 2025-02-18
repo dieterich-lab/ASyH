@@ -50,9 +50,9 @@ class Data:
         x = re.compile(".*Excel.*")
         c = re.compile(".*CSV.*")
         if x.match(filetype):
-            data = pandas.read_excel(input_file)
+            data = pandas.read_excel(input_file, index_col=False)
         elif c.match(filetype):
-            data = pandas.read_csv(input_file)
+            data = pandas.read_csv(input_file, index_col=False)
         else:
             raise DataError("Cannot determine input file type: ")
         self._data = data

@@ -42,13 +42,31 @@ class ScoringHook(Hook):
 
 
 class PreprocessHook(Hook):
-    '''Hook for Scoring functions, i.e. with the fingerprint
+    '''Hook for preprocessing functions, i.e. with the fingerprint
     (real_data, synthetic_data) => float,
     where real_data and synthetic_data are objects of the ASyH.data.Data
     class.  Only add such functions, otherwise exceptions will be thrown.'''
 
     def execute(self, real_data: Data):
         '''Execute all scorpre-processing functions in the hook,
+        return an imputed data frame'''
+        ret = real_data
+        for func in self._function_list:
+            try:
+                ret = func(ret)
+            except IncomputableMetricError:
+                pass
+        return ret
+
+
+class PostprocessHook(Hook):
+    '''Hook for postprocessing functions, i.e. with the fingerprint
+    (real_data, synthetic_data) => float,
+    where real_data and synthetic_data are objects of the ASyH.data.Data
+    class.  Only add such functions, otherwise exceptions will be thrown.'''
+
+    def execute(self, real_data: Data):
+        '''Execute all post-processing functions in the hook,
         return an imputed data frame'''
         ret = real_data
         for func in self._function_list:

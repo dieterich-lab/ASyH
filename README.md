@@ -19,8 +19,8 @@ Using pip, the easiest way to install/upgrade ASyH is
 The most basic use case for ASyH is to create an ASyH Application object and call synthesize() to get a synthetic dataset from the best-performing SDV model/synthesizer (one of CopulaGAN, CTGAN, GaussianCopula, or TVAE [cf. [the SDV documentation](https://docs.sdv.dev/sdv/single-table-data/modeling/synthesizers)]).  The input original dataset should be provided as a pandas DataFrame, the synthesized dataset is output as pandas DataFrame as well.  For identification of numerical and categorical variables, a metadata file in JSON format needs to be provided (see below).
 
 
-### CMD interface of the launcher run_asyh_app.py
-The following flags are available so far via the CMD of the launcher "run_asyh_app.py"
+### CMD interface of the launcher launcher.py
+The following flags are available so far via the CMD of the launcher "launcher.py"
 - "--input_name_root" : the name of the source table without its extension
 - "--input_format" : what file format is used (CSV by default)
 - "--metadata_file" : the name of the file with stored metadata
@@ -30,11 +30,11 @@ The following flags are available so far via the CMD of the launcher "run_asyh_a
 #### Examples of command-line usages
 The basic usage for making a new table based on reference tabular dataset:
 ```bash
-$ python3 run_asyh_app.py --input_name_root src_table --input_format csv --metadata_file metadata_table.json --output_name_root new_table
+$ python3 launcher.py --input_name_root src_table --input_format csv --metadata_file metadata_table.json --output_name_root new_table
 ```
 If you need to make pre-processing pipeline work too:
 ```bash
-$ python3 run_asyh_app.py --input_name_root src_table --input_format csv --metadata_file metadata_table.json --output_name_root new_table --to-preprocess
+$ python3 launcher.py --input_name_root src_table --input_format csv --metadata_file metadata_table.json --output_name_root new_table --to-preprocess
 ```
 
 ### Usage with Python
