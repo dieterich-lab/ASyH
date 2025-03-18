@@ -5,7 +5,7 @@ import torch.utils.data
 import torch.optim as optim
 from torch.optim import Adam
 from torch.nn import functional as F
-from torch.nn import (Dropout, LeakyReLU, Linear, Module, ReLU, Sequential,
+from torch.nn import (Dropout, LeakyReLU, Linear, Module, ReLU, Sequential, 
 Conv2d, ConvTranspose2d, Sigmoid, init, BCELoss, CrossEntropyLoss,SmoothL1Loss,LayerNorm)
 from ASyH.transformer_ctabgan import ImageTransformer,DataTransformer
 from tqdm import tqdm
@@ -66,7 +66,7 @@ def apply_activate(data, output_info):
             data_t.append(F.gumbel_softmax(data[:, st:ed], tau=0.2))
             st = ed
     output = torch.cat(data_t, dim=1)
-    import pdb; pdb.set_trace();
+    # import pdb; pdb.set_trace();
     return torch.cat(data_t, dim=1)
 
 def get_st_ed(target_col_index,output_info):
@@ -108,6 +108,7 @@ def maximum_interval(output_info):
         max_interval = max(max_interval, item[0])
     return max_interval
 
+
 class Cond(object):
     def __init__(self, data, output_info):
        
@@ -140,7 +141,7 @@ class Cond(object):
                 ed = st + item[0]
                 tmp = np.sum(data[:, st:ed], axis=0).astype(np.float32)
                 tmp_sampling = np.sum(data[:, st:ed], axis=0).astype(np.float32)
-                import pdb; pdb.set_trace()     
+                # import pdb; pdb.set_trace()     
                 tmp = np.log(tmp + 1)  
                 tmp = tmp / np.sum(tmp) 
                 tmp_sampling = tmp_sampling / np.sum(tmp_sampling)
@@ -206,6 +207,7 @@ def cond_loss(data, output_info, c, m):
 
     loss = torch.stack(loss, dim=1)
     return (loss * m).sum() / data.size()[0]
+
 
 class Sampler(object):
     def __init__(self, data, output_info):
@@ -374,7 +376,7 @@ class CTABGANSynthesizer:
         # TODO: replace datatransformer with default SDV method
         self.transformer = DataTransformer(train_data=train_data, categorical_list=categorical, mixed_dict=mixed, general_list=general, non_categorical_list=non_categorical)
         self.transformer.fit() 
-        train_data = self.transformer.transform(train_data.values)
+        train_data = self.transformer.transform()
         # import pdb; pdb.set_trace();
         data_sampler = Sampler(train_data, self.transformer.output_info)
         data_dim = self.transformer.output_dim

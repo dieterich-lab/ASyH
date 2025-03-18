@@ -1,8 +1,7 @@
 '''Hooks: simple execution hooks for common point of execution.'''
-
 from sdmetrics.errors import IncomputableMetricError
-
 from ASyH.data import Data
+import pdb
 
 
 class Hook:
@@ -34,6 +33,7 @@ class ScoringHook(Hook):
         ret = {}
         for func in self._function_list:
             try:
+                pdb.set_trace()
                 res = func(real_data, synthetic_data)
                 ret[func.__name__] = res
             except IncomputableMetricError:

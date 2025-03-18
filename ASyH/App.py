@@ -8,7 +8,7 @@ from ASyH.data import Data
 from ASyH.metadata import Metadata
 from ASyH.pipelines \
     import CopulaGANPipeline, TVAEPipeline, \
-    CTGANPipeline, GaussianCopulaPipeline
+    CTGANPipeline, GaussianCopulaPipeline, CTABGANPipeline
 from ASyH.dispatch import concurrent_dispatch
 
 from fancyimpute import IterativeImputer
@@ -23,11 +23,30 @@ class Application:
     @property
     def model(self):
         return self._best
+    
 
-    def __init__(self, preprocess=False):
+    @property
+    def results(self):
+        return self._results
+    
+    @property
+    def model2pipeline(self, model):
+        map_model2pipeline = {
+            'TVAE': TVAEPipeline,
+            'CTGAN': CTGANPipeline,
+            'CopulaGAN': CopulaGANPipeline,
+            'GaussianCopula': GaussianCopulaPipeline,
+            'CTABGAN': CTABGANPipeline
+        }
+        return map_model2pipeline[model]
+
+
+    def __init__(self, preprocess=False, models=None):
         self._results = []
         self._best = None
         self._preprocess = preprocess
+        self.models = models
+
 
     def _add_scoring(self, scoring_function, pipelines=None):
         '''Add a scoring function to all pipelines.'''
@@ -36,19 +55,22 @@ class Application:
         for pipeline in pipelines:
             pipeline.add_scoring(scoring_function)
 
+
     def _add_preprocessing(self, preprocess_function, pipelines=None):
         '''Add a preprocessing function to the pipeline.'''
-        if pipelines is None:
+        if self._preprocess == False or pipelines is None:
             pass
         for pipeline in pipelines:
             pipeline.add_preprocessing(preprocess_function)
 
-    def _add_postprocessing(self, postprocess_function, pipeline=None):
+
+    def _add_postprocessing(self, postprocess_function, pipelines=None):
         '''Add a postprocessing function to the pipeline.'''
         if pipelines is None:
             pass
         for pipeline in pipelines:
             pipeline.add_postprocessing(postprocess_function)
+
 
     def _select_best(self, results, pipelines=None):
         '''Select the best-scoring model'''
@@ -58,6 +80,7 @@ class Application:
         self._best = pipelines[best_score].model
         return self._best
 
+
     def synthesize(self, input_file,
                    metadata=None, metadata_file=None, sample_size=-1):
         '''Synthesize data using the best-scoring model.'''
@@ -66,6 +89,7 @@ class Application:
                          metadata_file=metadata_file,
                          metadata=metadata)
         return self._best.synthesize(sample_size)
+
 
     def process(self, input_file, metadata_file=None, metadata=None):
         '''Process the default ASyH pipeline.'''
@@ -87,7 +111,6 @@ class Application:
                 Warning('Using existing standard metadata file: '
                         + str(standard_metadata_file))
                 return self.process(input_file, metadata_file=standard_metadata_file)
-
             Warning('No metadata file provided and no default file found.')
             # in this case, metadata is left None!
 
@@ -96,26 +119,30 @@ class Application:
 
         return self.train(input_data, metadata)
 
+
     def train(self, input_data, metadata):
         """Train each model in its own pipeline using input_data and metadata,
         score, select and return the best scoring model.
         """
         input_data.set_metadata(metadata)
 
-        pipelines = [TVAEPipeline(input_data),
-                     CTGANPipeline(input_data),
-                     CopulaGANPipeline(input_data),
-                     GaussianCopulaPipeline(input_data)]
+        if self.models is not None:
+            pipelines = [self.model2pipeline[model](input_data) for model in self.models]
+        else:
+            pipelines = [TVAEPipeline(input_data),
+                        CTGANPipeline(input_data),
+                        CopulaGANPipeline(input_data),
+                        GaussianCopulaPipeline(input_data)]
 
         def preprocess_impute(input_data):
             MICE = IterativeImputer(verbose=False)
             input_data_2 = MICE.fit_transform(input_data)
             return input_data_2
         
-        def postprocess_function(synth_data):
-            pass
-            ...
-            return post_data
+        # def postprocess_function(synth_data):
+        #     pass
+        #     ...
+        #     return post_data
 
         def sdmetrics_quality(input_data, synth_data):
             report = sdmetrics.reports.single_table.QualityReport()
@@ -127,7 +154,7 @@ class Application:
 
         self._add_preprocessing(preprocess_impute, pipeline=pipelines)
 
-        self._add_postprocessing(postprocess_function, pipelines)
+        # self._add_postprocessing(postprocess_function, pipelines)
 
         self._add_scoring(sdmetrics_quality, pipelines=pipelines)
 
