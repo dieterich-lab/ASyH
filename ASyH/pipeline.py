@@ -39,7 +39,7 @@ class Pipeline(AbstractPipeline):
             os.chdir(workdir)
             self._input_data = self._preprocessing_hook.execute(self._input_data)
             synthetic_data = Data(data=self._model.synthesize())
-            synthetic_data = self._postprocessing_hook.execute(synthetic_data)
+            # synthetic_data = self._postprocessing_hook.execute(synthetic_data)
             detailed_scores = self._scoring_hook.execute(self._input_data,
                                                          synthetic_data)
         os.chdir(save_cwd)

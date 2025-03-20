@@ -11,8 +11,10 @@ from ASyH.pipelines \
     CTGANPipeline, GaussianCopulaPipeline, CTABGANPipeline
 from ASyH.dispatch import concurrent_dispatch
 
-from fancyimpute import IterativeImputer
-
+from sklearn.experimental import enable_iterative_imputer
+from sklearn.impute import IterativeImputer
+# import pudb
+# from pudb.remote import set_trace
 # import ASyH.metrics.anonymity
 # import ASyH.metrics
 
@@ -29,7 +31,6 @@ class Application:
     def results(self):
         return self._results
     
-    @property
     def model2pipeline(self, model):
         map_model2pipeline = {
             'TVAE': TVAEPipeline,
@@ -106,15 +107,15 @@ class Application:
         # use a default .json file when neither metadata_file nor metadata were given:
         if metadata is None:
             standard_metadata_file = \
-                pathlib.Path(input_file).with_suffix('.json')
+                pathlib.Path(input_file).with_suffix('.json')                                                                                                                                                           
             if standard_metadata_file.exists():
                 Warning('Using existing standard metadata file: '
                         + str(standard_metadata_file))
                 return self.process(input_file, metadata_file=standard_metadata_file)
             Warning('No metadata file provided and no default file found.')
             # in this case, metadata is left None!
-
-        input_data = Data()
+                                                 
+        input_data = Data()       
         input_data.read(input_file)
 
         return self.train(input_data, metadata)
@@ -127,18 +128,30 @@ class Application:
         input_data.set_metadata(metadata)
 
         if self.models is not None:
-            pipelines = [self.model2pipeline[model](input_data) for model in self.models]
+            pipelines = [self.model2pipeline(model)(input_data) for model in self.models]
         else:
             pipelines = [TVAEPipeline(input_data),
                         CTGANPipeline(input_data),
                         CopulaGANPipeline(input_data),
                         GaussianCopulaPipeline(input_data)]
 
+        print(f"Running pipelines: {pipelines} ...")
+
         def preprocess_impute(input_data):
-            MICE = IterativeImputer(verbose=False)
-            input_data_2 = MICE.fit_transform(input_data)
-            return input_data_2
+            # MICE = IterativeImputer(verbose=False)
+            imputer = IterativeImputer(
+                # estimator='RandomForestRegressor',              # Default: BayesianRidge
+                estimator=None,
+                max_iter=10,                 # Maximum iterations per feature
+                tol=0.001,                   # Stopping tolerance threshold
+                random_state=42,             # Reproducibility                                                                                     
+                initial_strategy='median'      # Initial imputation method
+                )
+            # set_trace() # breakpoint
+            imp_data = imputer.fit_transform(input_data)
+            return imp_data
         
+        # TODO: Implement postprocessing function
         # def postprocess_function(synth_data):
         #     pass
         #     ...
@@ -152,12 +165,15 @@ class Application:
                             verbose=False)
             return report.get_score()
 
-        self._add_preprocessing(preprocess_impute, pipeline=pipelines)
+        self._add_preprocessing(preprocess_impute, pipelines=pipelines)
+        print("Added preprocessing hooks")
 
         # self._add_postprocessing(postprocess_function, pipelines)
 
         self._add_scoring(sdmetrics_quality, pipelines=pipelines)
+        print("Added scoring hooks")
 
+        print("Dispatching the pipelines concurrently ...")
         self._results = concurrent_dispatch(*pipelines)
 
         self._best = self._select_best(self._results, pipelines=pipelines)
