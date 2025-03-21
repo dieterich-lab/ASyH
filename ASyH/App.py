@@ -40,11 +40,23 @@ class Application:
         return map_model2pipeline[model]
 
 
-    def __init__(self, preprocess=False, models=None):
+    def __init__(self, preprocess=False, models=None, constraints=None):
+        '''
+        Initialize the application with a list of models
+        and a flag for preprocessing.
+
+        Args:
+            preprocess (bool): True if preprocessing is desired.
+            models (list): A list of models to train.
+
+        Returns:
+            None
+        '''
         self._results = []
         self._best = None
         self._preprocess = preprocess
         self.models = models
+        self.constraints = constraints
 
 
     def _add_scoring(self, scoring_function, pipelines=None):
@@ -87,7 +99,8 @@ class Application:
             self.process(input_file,
                          metadata_file=metadata_file,
                          metadata=metadata)
-        return self._best.synthesize(sample_size)
+        return self._best.synthesize(sample_size, 
+                                     override_args={'constraints':self.constraints})
 
 
     def process(self, input_file, metadata_file=None, metadata=None):
@@ -126,7 +139,7 @@ class Application:
         input_data.set_metadata(metadata)
 
         if self.models is not None:
-            pipelines = [self.model2pipeline(model)(input_data) for model in self.models]
+            pipelines = [self.model2pipeline(model)(input_data, override_args={'constraints':self.constraints}) for model in self.models]
         else:
             pipelines = [TVAEPipeline(input_data),
                         CTGANPipeline(input_data),

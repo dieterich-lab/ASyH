@@ -39,41 +39,46 @@ logger.addHandler(file_handler)
 
 class CopulaGANPipeline(Pipeline):
 
-    def __init__(self, input_data):
+    def __init__(self, input_data, override_args={"constraints": None}):
         Pipeline.__init__(self,
-                          model=CopulaGANModel(data=input_data),
+                          model=CopulaGANModel(data=input_data,
+                                               override_args=override_args),
                           input_data=input_data)
 
 
 class CTGANPipeline(Pipeline):
 
-    def __init__(self, input_data):
+    def __init__(self, input_data, , override_args={"constraints": None}):
         Pipeline.__init__(self,
-                          model=CTGANModel(data=input_data),
+                          model=CTGANModel(data=input_data,
+                                           override_args=override_args),
                           input_data=input_data)
 
 
 class GaussianCopulaPipeline(Pipeline):
 
-    def __init__(self, input_data):
+    def __init__(self, input_data, override_args={"constraints": None}):
         Pipeline.__init__(self,
-                          model=GaussianCopulaModel(data=input_data),
+                          model=GaussianCopulaModel(data=input_data,
+                                                    override_args=override_args),
                           input_data=input_data)
 
 
 class TVAEPipeline(Pipeline):
 
-    def __init__(self, input_data):
+    def __init__(self, input_data, override_args={"constraints": None}):
         Pipeline.__init__(self,
-                          model=TVAEModel(data=input_data),
+                          model=TVAEModel(data=input_data,
+                                          override_args=override_args),
                           input_data=input_data)
         
 
 class CTABGANPipeline(Pipeline):
 
-    def __init__(self, input_data):
+    def __init__(self, input_data, override_args={"constraints": None}):
         Pipeline.__init__(self,
-                          model=CTABGAN_Model(data=input_data),
+                          model=CTABGAN_Model(data=input_data,
+                                              override_args=override_args),
                           input_data=input_data)
         
 
