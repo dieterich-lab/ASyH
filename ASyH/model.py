@@ -82,6 +82,7 @@ class Model(ABC):
                 args.update(self._override_args)
             self._sdv_model = \
                 self._sdv_model_class(**args)
+        self._sdv_model.add_constraints(args['constraints'])
         self._sdv_model.fit(data.data)
         self._input_data_size = data.data.shape[0]
         self._trained = True
