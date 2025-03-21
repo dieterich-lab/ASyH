@@ -38,6 +38,7 @@ parser.add_argument("--metadata_file", dest="METADATA_FILE", type=str)
 parser.add_argument("--output_name_root", dest="OUTPUT_NAME_ROOT", type=str)
 parser.add_argument("--to-preprocess", action='store_true', dest="PREPROCESS")
 parser.add_argument("--to-postprocess", action='store_true', dest="POSTPROCESS")
+parser.add_argument("--constraints", action="store_true", dest="CONSTRAINTS")
 
 
 def readData(input_file, ext, **kwargs) -> pd.DataFrame:
@@ -62,7 +63,15 @@ if __name__ == '__main__':
     MODEL_FILENAME = OUTPUT_NAME + '.pkl'
     # pdb.set_trace()
 
-    asyh = ASyH.Application(preprocess=args.PREPROCESS)
+    # specify here the logical constraints on data synthesis process
+    # the set of rules that the synthesized data must satisfy
+    constraints = {}
+
+    if args.CONSTRAINTS:
+        asyh = ASyH.Application(preprocess=args.PREPROCESS, 
+                                constraints=constraints)
+    else:
+        asyh = ASyH.Application(preprocess=args.PREPROCESS)
 
 
     # Reporting
