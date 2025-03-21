@@ -376,7 +376,8 @@ class CTABGANSynthesizer:
         # TODO: replace datatransformer with default SDV method
         self.transformer = DataTransformer(train_data=train_data, categorical_list=categorical, mixed_dict=mixed, general_list=general, non_categorical_list=non_categorical)
         self.transformer.fit() 
-        train_data = self.transformer.transform()
+        # train_data = self.transformer.transform()
+        train_data = self.transformer.transform(train_data)
         # import pdb; pdb.set_trace();
         data_sampler = Sampler(train_data, self.transformer.output_info)
         data_dim = self.transformer.output_dim

@@ -36,8 +36,10 @@ class DataTransformer():
                     meta.append({
                       "name": index,
                       "type": "continuous",
-                      "min": column.min(),
-                      "max": column.max(),
+                      # "min": column.min(),
+                      "min": np.min(column),
+                      # "max": column.max(),
+                      "max": np.max(column),
                     })
                 else:
                     mapper = column.value_counts().index.tolist()
@@ -52,16 +54,20 @@ class DataTransformer():
                 meta.append({
                     "name": index,
                     "type": "mixed",
-                    "min": column.min(),
-                    "max": column.max(),
+                    # "min": column.min(),
+                    "min": np.min(column),
+                    # "max": column.max(),
+                    "max": np.max(column),
                     "modal": self.mixed_columns[index]
                 })
             else:
                 meta.append({
                     "name": index,
                     "type": "continuous",
-                    "min": column.min(),
-                    "max": column.max(),
+                    # "min": column.min(),
+                    "min": np.min(column),
+                    # "max": column.max(),
+                    "max": np.max(column),
                 })            
 
         return meta
@@ -217,7 +223,9 @@ class DataTransformer():
     def transform(self, data0, ispositive = False, positive_list = None):
         values = []
         mixed_counter = 0
-        data = self._fit(data0)
+        # REVIEW
+        # data = self._fit(data0)
+        data = data0
         for id_, info in enumerate(self.meta):
             ## ? Insert here the code to check the data type of current column
             ## then convert it to the numeric if it is str ?

@@ -8,11 +8,9 @@ from ASyH.data import Data
 from ASyH.metadata import Metadata
 from ASyH.pipelines \
     import CopulaGANPipeline, TVAEPipeline, \
-    CTGANPipeline, GaussianCopulaPipeline, CTABGANPipeline
+    CTGANPipeline, GaussianCopulaPipeline, CTABGANPipeline, Preprocess
 from ASyH.dispatch import concurrent_dispatch
 
-from sklearn.experimental import enable_iterative_imputer
-from sklearn.impute import IterativeImputer
 # import pudb
 # from pudb.remote import set_trace
 # import ASyH.metrics.anonymity
@@ -136,20 +134,6 @@ class Application:
                         GaussianCopulaPipeline(input_data)]
 
         print(f"Running pipelines: {pipelines} ...")
-
-        def preprocess_impute(input_data):
-            # MICE = IterativeImputer(verbose=False)
-            imputer = IterativeImputer(
-                # estimator='RandomForestRegressor',              # Default: BayesianRidge
-                estimator=None,
-                max_iter=10,                 # Maximum iterations per feature
-                tol=0.001,                   # Stopping tolerance threshold
-                random_state=42,             # Reproducibility                                                                                     
-                initial_strategy='median'      # Initial imputation method
-                )
-            # set_trace() # breakpoint
-            imp_data = imputer.fit_transform(input_data)
-            return imp_data
         
         # TODO: Implement postprocessing function
         # def postprocess_function(synth_data):
@@ -165,9 +149,12 @@ class Application:
                             verbose=False)
             return report.get_score()
 
-        self._add_preprocessing(preprocess_impute, pipelines=pipelines)
+        self._add_preprocessing(Preprocess.convert_all_dates, pipelines=pipelines)
+        self._add_preprocessing(Preprocess.impute, pipelines=pipelines)
+        # self._add_preprocessing(self._preprocess_impute, pipelines=pipelines)
         print("Added preprocessing hooks")
 
+        # TODO: Implement the postprocessing function that could be used by CTABGAN pipeline
         # self._add_postprocessing(postprocess_function, pipelines)
 
         self._add_scoring(sdmetrics_quality, pipelines=pipelines)

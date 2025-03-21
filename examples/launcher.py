@@ -62,7 +62,8 @@ if __name__ == '__main__':
     MODEL_FILENAME = OUTPUT_NAME + '.pkl'
     # pdb.set_trace()
 
-    asyh = ASyH.Application(preprocess=args.PREPROCESS, models=['TVAE'])
+    # asyh = ASyH.Application(preprocess=args.PREPROCESS, models=['TVAE'])
+    asyh = ASyH.Application(preprocess=args.PREPROCESS, models=['CTABGAN'])
 
 
     # Reporting
