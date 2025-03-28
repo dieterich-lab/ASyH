@@ -34,7 +34,12 @@ $ python3 launcher.py --input_name_root src_table --input_format csv --metadata_
 ```
 If you need to make pre-processing pipeline work too:
 ```bash
-$ python3 launcher.py --input_name_root src_table --input_format csv --metadata_file metadata_table.json --output_name_root new_table --to-preprocess
+$ python3 launcher.py --input_name_root src_table --input_format csv --metadata_file metadata_table.json --output_name_root new_table --preprocess
+```
+
+If you need to impose logical constraints on generated table, add the flag `--constraints`
+```bash
+$ python3 launcher.py --input_name_root src_table --input_format csv --metadata_file metadata_table.json --output_name_root new_table --constraints
 ```
 
 ### Usage with Python
