@@ -8,7 +8,7 @@ from sklearn.experimental import enable_iterative_imputer
 from sklearn.impute import IterativeImputer
 
 from ASyH.pipeline import Pipeline
-from ASyH.models import CopulaGANModel, CTGANModel, GaussianCopulaModel, TVAEModel, CTABGAN_Model
+from ASyH.models import CopulaGANModel, CTGANModel, GaussianCopulaModel, TVAEModel, ForestFlowModel
 
 from ASyH.data import Data
 from ASyH.hook import ScoringHook, PreprocessHook, PostprocessHook
@@ -40,16 +40,15 @@ logger.addHandler(file_handler)
 class CopulaGANPipeline(Pipeline):
 
     def __init__(self, input_data, override_args={"constraints": None}):
-        Pipeline.__init__(self,
-                          model=CopulaGANModel(data=input_data,
+        super().__init__(model=CopulaGANModel(data=input_data,
                                                override_args=override_args),
                           input_data=input_data)
 
 
 class CTGANPipeline(Pipeline):
 
-    def __init__(self, input_data, , override_args={"constraints": None}):
-        Pipeline.__init__(self,
+    def __init__(self, input_data, override_args={"constraints": None}):
+        super().__init__(self,
                           model=CTGANModel(data=input_data,
                                            override_args=override_args),
                           input_data=input_data)
@@ -58,8 +57,7 @@ class CTGANPipeline(Pipeline):
 class GaussianCopulaPipeline(Pipeline):
 
     def __init__(self, input_data, override_args={"constraints": None}):
-        Pipeline.__init__(self,
-                          model=GaussianCopulaModel(data=input_data,
+        super().__init__(model=GaussianCopulaModel(data=input_data,
                                                     override_args=override_args),
                           input_data=input_data)
 
@@ -67,24 +65,20 @@ class GaussianCopulaPipeline(Pipeline):
 class TVAEPipeline(Pipeline):
 
     def __init__(self, input_data, override_args={"constraints": None}):
-        Pipeline.__init__(self,
-                          model=TVAEModel(data=input_data,
+        super().__init__(model=TVAEModel(data=input_data,
                                           override_args=override_args),
                           input_data=input_data)
         
 
-class CTABGANPipeline(Pipeline):
+class ForestFlowPipeline(Pipeline):
 
     def __init__(self, input_data, override_args={"constraints": None}):
-        Pipeline.__init__(self,
-                          model=CTABGAN_Model(data=input_data,
+        super().__init__(model=ForestFlowModel(data=input_data,
                                               override_args=override_args),
                           input_data=input_data)
-        
 
     def add_postprocessing(self, postprocess_function):
         self._postprocessing_hook.add(postprocess_function)
-
 
 
     # TODO: later on, wrap the following functions find_closest, generate_col_maps, ... in the static class
@@ -134,30 +128,92 @@ class CTABGANPipeline(Pipeline):
         return categoric_cols
     
 
-    def run(self):
-        save_cwd = os.getcwd()
-        with tempfile.TemporaryDirectory() as workdir:
-            os.chdir(workdir)
-            self._input_data = self._preprocessing_hook.execute(self._input_data)
-            # TODO: later add the following few lines to the static class
-            synthetic_data_ = Data(data=self._model.synthesize())
-            synthetic_data_df = pd.DataFrame(synthetic_data_.data, columns=self._input_data.data.columns)
-            categoric_cols =  self.identify_categorical_cols(self._input_data)
-            col_maps = self.generate_col_maps(self._input_data, categoric_cols)
+    def identify_float_columns_that_are_booleans(self, df):
+        float_cols = df.select_dtypes(include=["float"])  # Only float dtype columns
+        boolean_like_cols = []
+        for col in float_cols.columns:
+            series_no_na = float_cols[col].dropna()
+            # Check if all unique non-NA values are either 0.0 or 1.
+            unique_vals = set(series_no_na.unique())
+            if len(unique_vals) <= 2:
+                boolean_like_cols.append(col)
+        return boolean_like_cols
+
+
+    def identify_float_columns_that_are_integers(self, df):                                                          
+        float_cols = df.select_dtypes(include=["float"])  # Only float dtype columns                               
+        integer_like_cols = []                                                                                     
+        for col in float_cols.columns: # Drop missing values so we don't accidentally compare NaN                                    
+            series_no_na = float_cols[col].dropna()                                                                
+            # Check if all values are integers (fractional part is zero)                                           
+            if (series_no_na % 1 == 0).all():                                                                      
+                integer_like_cols.append(col)                                                                      
+        return integer_like_cols 
+    
+
+    # def run(self):
+    #     save_cwd = os.getcwd()
+    #     with tempfile.TemporaryDirectory() as workdir:
+    #         os.chdir(workdir)
+    #         self._input_data = self._preprocessing_hook.execute(self._input_data)
+    #         # TODO: later add the following few lines to the static class
+    #         synthetic_data_ = Data(data=self._model.synthesize())
+    #         synthetic_data_df = pd.DataFrame(synthetic_data_.data, columns=self._input_data.data.columns)
+    #         categoric_cols =  self.identify_categorical_cols(self._input_data)
+    #         col_maps = self.generate_col_maps(self._input_data, categoric_cols)
             
-            synthetic_data_df = self.discretize_cols(synthetic_data_df, categoric_cols, col_maps)
-            synthetic_data = Data(synthetic_data_df)
-            synthetic_data.set_metadata(self._input_data.metadata)
-            # self.add_postprocessing
-            # synthetic_data = self._postprocessing_hook.execute(synthetic_data)
-            detailed_scores = self._scoring_hook.execute(self._input_data,
-                                                         synthetic_data)
-        os.chdir(save_cwd)
-        print(f'{self.model.model_type} Scoring: {str(detailed_scores)}')
-        # Assuming, the scoring functions are maximizing, nomalized, and
-        # weighted equally:
-        scores = flatten_dict(detailed_scores)
-        return sum(scores.values()) / len(scores)
+    #         synthetic_data_df = self.discretize_cols(synthetic_data_df, categoric_cols, col_maps)
+    #         synthetic_data = Data(synthetic_data_df)
+    #         synthetic_data.set_metadata(self._input_data.metadata)
+    #         # self.add_postprocessing
+    #         # synthetic_data = self._postprocessing_hook.execute(synthetic_data)
+    #         detailed_scores = self._scoring_hook.execute(self._input_data,
+    #                                                      synthetic_data)
+    #     os.chdir(save_cwd)
+    #     print(f'{self.model.model_type} Scoring: {str(detailed_scores)}')
+    #     # Assuming, the scoring functions are maximizing, nomalized, and
+    #     # weighted equally:
+    #     scores = flatten_dict(detailed_scores)
+    #     return sum(scores.values()) / len(scores)
+    
+
+    def run(self):
+        df_int_cols = self.identify_float_columns_that_are_integers(self.input_data.data)
+        df_bool_cols = self.identify_float_columns_that_are_booleans(self.input_data.data)
+        meta = self._input_data.metadata
+
+        cat_indexes, int_indexes = [], []
+
+        for col in meta['columns'].keys():
+            if meta['columns'][col]['sdtype'] == 'categorical':
+                cat_indexes.append(list(meta['columns'].keys()).index(col))
+            elif meta['columns'][col]['sdtype'] == 'id' or meta['columns'][col]['sdtype'] == 'numerical':
+                int_indexes.append(list(meta['columns'].keys()).index(col))
+            else:
+                pass
+
+        for col in self.input_data.data.columns:
+            if meta['columns'][col]['sdtype'] == 'numerical':
+                if col in df_int_cols:
+                    # df_medset[col] = df_medset[col].astype(int)
+                    meta['columns'][col]['computer_representation'] = 'Int'
+                elif col in df_bool_cols:
+                    meta['columns'][col]['sdtype'] = 'boolean'
+                else:
+                    meta['columns'][col]['computer_representation'] = 'Float'
+
+        X = self._input_data.data.to_numpy()
+        # print(X)
+        # ipdb.set_trace()
+
+        self.model._train(self._input_data)
+
+        Xy_fake = self.model.synthesize(batch_size=X.shape[0])
+        print(f"Regression problem: \n {Xy_fake}")
+        with open('fake_medset.npy', 'wb') as np_fl:
+            np.save(np_fl, Xy_fake)
+
+        return Xy_fake
 
 
 # ASyH static class for preprocessing functions
@@ -193,8 +249,13 @@ class Preprocess:
     # the method that does inverse operation to convert_dates
     @staticmethod
     def convert_back_dates(df, date_cols) -> pd.DataFrame:
+
+        assert isinstance(df, pd.DataFrame), "df must be a pandas DataFrame"
+        assert isinstance(date_cols, list), "date_cols must be a list"
+        assert all(col in df.columns for col in date_cols), "All columns in date_cols must be in df.columns"
+
         for col in date_cols:
-            df[col] = pd.to_datetime(df[col] + pd.Timestamp("1900-01-01"))
+            df[col] = pd.to_datetime(df[col] + pd.Timestamp("1900-01-01"), unit='D')
         return df
     
 
@@ -248,5 +309,3 @@ class Preprocess:
         metadata = data.metadata
         categoric_cols = [col for col in data.data.columns if metadata.columns[col]['sdtype'] == 'categorical']
         return categoric_cols
-    
-    

@@ -165,7 +165,7 @@ class ModelX(ABC):
             # create the SDV model just when we need it
             args = self.adapted_arguments(data)
             if self._override_args is not None:
-                args.update(self._override_args)
+                args.update(self._override_args)   
             self._ext_model = \
                 self._ext_model_class(**args)
         self._ext_model.fit(data.data)
@@ -192,10 +192,10 @@ class ModelX(ABC):
         if self._ext_model:
             self._ext_model.read(input_filename)
 
-    def synthesize(self, sample_size: int = -1) -> DataFrame:
+    def synthesize(self, sample_size: int = -1, data=None) -> DataFrame:
         '''Create synthetic data.'''
         if not self._trained:
-            self._train(None)
+            self._train(data)
         if sample_size == -1:
             sample_size = self._input_data_size
         return self.ext_model.sample(sample_size)
