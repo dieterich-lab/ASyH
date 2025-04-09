@@ -14,6 +14,7 @@ from ASyH.data import Data
 from ASyH.model import Model, ModelX
 from ASyH.ctabgan_synthesizer import CTABGANSynthesizer
 from ASyH.transformer_ctabgan import *
+# from forest_data_prep import DataPrep
 import time
 import subprocess
 import datetime
@@ -208,7 +209,7 @@ class GaussianCopulaModel(Model):
                 'default_distribution': best_scores['categorical'][0]}
 
 
-class CTABGAN_Model(Model):
+class ForestFlowModel(Model):
     def __init__(self, data=Optional[Data], override_args=None):
         Model.__init__(self,
                       sdv_model_class=CTABGANSynthesizer,
@@ -231,43 +232,43 @@ class CTABGAN_Model(Model):
                 'discriminator_dim': hidden_layer_dims}
 
 
-class CTABGAN():
-    def __init__(self,
-                 pd_data,
-                 categorical_columns = [], 
-                 log_columns = [],
-                 mixed_columns= {},
-                 general_columns = [],
-                 non_categorical_columns = [],
-                 integer_columns = []):
-        self.synthesizer = CTABGANSynthesizer()
-        self.raw_df = pd_data
-        self.categorical_columns = categorical_columns
-        self.log_columns = log_columns
-        self.mixed_columns = mixed_columns
-        self.general_columns = general_columns
-        self.non_categorical_columns = non_categorical_columns
-        self.integer_columns = integer_columns
+# class CTABGAN():
+#     def __init__(self,
+#                  pd_data,
+#                  categorical_columns = [], 
+#                  log_columns = [],
+#                  mixed_columns= {},
+#                  general_columns = [],
+#                  non_categorical_columns = [],
+#                  integer_columns = []):
+#         self.synthesizer = CTABGANSynthesizer()
+#         self.raw_df = pd_data
+#         self.categorical_columns = categorical_columns
+#         self.log_columns = log_columns
+#         self.mixed_columns = mixed_columns
+#         self.general_columns = general_columns
+#         self.non_categorical_columns = non_categorical_columns
+#         self.integer_columns = integer_columns
 
-    def fit(self):
-        start_time = time.time()
-        self.data_prep = DataPrep(self.raw_df,self.categorical_columns,self.log_columns,self.mixed_columns,self.general_columns,self.non_categorical_columns,self.integer_columns)
-        self.synthesizer.fit(train_data=self.data_prep.df, categorical = self.data_prep.column_types["categorical"], mixed = self.data_prep.column_types["mixed"],
-        general = self.data_prep.column_types["general"], non_categorical = self.data_prep.column_types["non_categorical"])
-        end_time = time.time()
-        print('Finished training in',end_time-start_time," seconds.")
+#     def fit(self):
+#         start_time = time.time()
+#         self.data_prep = DataPrep(self.raw_df,self.categorical_columns,self.log_columns,self.mixed_columns,self.general_columns,self.non_categorical_columns,self.integer_columns)
+#         self.synthesizer.fit(train_data=self.data_prep.df, categorical = self.data_prep.column_types["categorical"], mixed = self.data_prep.column_types["mixed"],
+#         general = self.data_prep.column_types["general"], non_categorical = self.data_prep.column_types["non_categorical"])
+#         end_time = time.time()
+#         print('Finished training in',end_time-start_time," seconds.")
 
-    def generate_samples(self):
+#     def generate_samples(self):
 
-        sample = self.synthesizer.sample(len(self.raw_df))
-        sample_df = self.data_prep.inverse_prep(sample)
+#         sample = self.synthesizer.sample(len(self.raw_df))
+#         sample_df = self.data_prep.inverse_prep(sample)
 
-        return sample_df
+#         return sample_df
 
 
-def _init_iterative_scores(metadata_dict: Dict[str, any]):
-    return_dict = {}
-    for numerical in metadata_dict.variables_by_type('numerical'):
-        return_dict[numerical] = ('', 0.0)
-    return_dict['categorical'] = ('', 0.0)
-    return return_dict
+# def _init_iterative_scores(metadata_dict: Dict[str, any]):
+#     return_dict = {}
+#     for numerical in metadata_dict.variables_by_type('numerical'):
+#         return_dict[numerical] = ('', 0.0)
+#     return_dict['categorical'] = ('', 0.0)
+#     return return_dict
