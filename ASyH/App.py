@@ -8,7 +8,8 @@ from ASyH.data import Data
 from ASyH.metadata import Metadata
 from ASyH.pipelines \
     import CopulaGANPipeline, TVAEPipeline, \
-    CTGANPipeline, GaussianCopulaPipeline, CTABGANPipeline, Preprocess
+    CTGANPipeline, GaussianCopulaPipeline, ForestFlowPipeline
+from ASyH.utils import Utils
 from ASyH.dispatch import concurrent_dispatch
 
 # import pudb
@@ -35,7 +36,7 @@ class Application:
             'CTGAN': CTGANPipeline,
             'CopulaGAN': CopulaGANPipeline,
             'GaussianCopula': GaussianCopulaPipeline,
-            'CTABGAN': CTABGANPipeline
+            'ForestFlowModel': ForestFlowPipeline
         }
         return map_model2pipeline[model]
 
@@ -57,6 +58,8 @@ class Application:
         self._preprocess = preprocess
         self.models = models
         self.constraints = constraints
+        self.input_data = None
+        self.metadata = None
 
 
     def _add_scoring(self, scoring_function, pipelines=None):
@@ -99,8 +102,9 @@ class Application:
             self.process(input_file,
                          metadata_file=metadata_file,
                          metadata=metadata)
-        return self._best.synthesize(sample_size, 
-                                     override_args={'constraints':self.constraints})
+        # prep_data = Utils.impute(self.input_data)
+        synth_data = self._best.synthesize(sample_size, data=self.input_data)
+        return synth_data
 
 
     def process(self, input_file, metadata_file=None, metadata=None):
@@ -129,6 +133,9 @@ class Application:
         input_data = Data()       
         input_data.read(input_file)
 
+        self.input_data = input_data
+        self.metadata = metadata
+
         return self.train(input_data, metadata)
 
 
@@ -141,10 +148,11 @@ class Application:
         if self.models is not None:
             pipelines = [self.model2pipeline(model)(input_data, override_args={'constraints':self.constraints}) for model in self.models]
         else:
-            pipelines = [TVAEPipeline(input_data),
-                        CTGANPipeline(input_data),
-                        CopulaGANPipeline(input_data),
-                        GaussianCopulaPipeline(input_data)]
+            pipelines = [pipe(input_data, override_args={'constraints':self.constraints}) \
+                          for pipe in [TVAEPipeline, 
+                                       CTGANPipeline, 
+                                       CopulaGANPipeline, 
+                                       GaussianCopulaPipeline]]
 
         print(f"Running pipelines: {pipelines} ...")
         
@@ -162,8 +170,8 @@ class Application:
                             verbose=False)
             return report.get_score()
 
-        self._add_preprocessing(Preprocess.convert_all_dates, pipelines=pipelines)
-        self._add_preprocessing(Preprocess.impute, pipelines=pipelines)
+        self._add_preprocessing(Utils.convert_all_dates, pipelines=pipelines)
+        self._add_preprocessing(Utils.impute, pipelines=pipelines)
         # self._add_preprocessing(self._preprocess_impute, pipelines=pipelines)
         print("Added preprocessing hooks")
 

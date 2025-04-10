@@ -10,14 +10,17 @@ import rdt
 #   Implement adapt() for models to tune the model internals to the data.
 
 import sdv
-from ASyH.data import Data
+from ASyH.data import Data, Metadata
 from ASyH.model import Model, ModelX
 from ASyH.ctabgan_synthesizer import CTABGANSynthesizer
 from ASyH.transformer_ctabgan import *
+from ASyH.utils import Utils
 # from forest_data_prep import DataPrep
 import time
 import subprocess
 import datetime
+
+import pandas as pd
 
 RAND_MAX = 65536
 
@@ -172,7 +175,7 @@ class GaussianCopulaModel(Model):
         return args
 
     def _tune_GCM_distributions(self, data: Data) -> Dict[str, str]:
-        best_scores = _init_iterative_scores(data.metadata)
+        best_scores = self._init_iterative_scores(data.metadata)
         numerical_vars = data.metadata.variables_by_type('numerical')
         column_distributions = dict()
 
@@ -207,9 +210,17 @@ class GaussianCopulaModel(Model):
 
         return {'numerical_distributions': column_distributions,
                 'default_distribution': best_scores['categorical'][0]}
+    
+    def _init_iterative_scores(self, metadata_dict: Dict[str, any]):
+        return_dict = {}
+        for numerical in metadata_dict.variables_by_type('numerical'):
+            return_dict[numerical] = ('', 0.0)
+        return_dict['categorical'] = ('', 0.0)
+        return return_dict
 
 
 class ForestFlowModel(Model):
+    '''Specific ASyH Model for Samsung ForestFlow model.'''
     def __init__(self, data=Optional[Data], override_args=None):
         Model.__init__(self,
                       sdv_model_class=CTABGANSynthesizer,
@@ -230,6 +241,102 @@ class ForestFlowModel(Model):
         return {'metadata': _get_metadata_from_data(data),
                 'generator_dim': hidden_layer_dims,
                 'discriminator_dim': hidden_layer_dims}
+    
+
+    def transform_data_prep(self, data: Data) -> Data:
+        data = Utils.convert_all_dates(data)
+
+        # check if the dataframe df contains nans
+        df = data.data
+
+        if df.isnull().values.any():
+            # raise the warning
+            Warning('DataFrame contains NaN values. Filling with 0.')
+            # impute the missing values using Utils.impute
+            data = Utils.impute(data)
+        # check if the dataframe df contains infinite values
+
+        # if np.isinf(df.values).any():
+        #     # raise the warning
+        #     Warning('DataFrame contains infinite values. Filling with 0.')
+        #     # replace the infinite values with nan
+        #     df.replace([np.inf, -np.inf], np.nan, inplace=True)
+        #     # impute the missing values using Utils.impute
+        #     data = Utils.impute(data)
+
+        return data
+    
+
+    def transform_data_inverse(self, data: Data, src_data: Data) -> Data:
+        meta = src_data.metadata
+        cat_cols = []
+
+        # # check if data is an instance of DataFrame
+        # if not isinstance(data, pd.DataFrame) and isinstance(data, np.ndarray):
+        #     # make it a datafame from numpy
+        #     data = pd.DataFrame(data, columns=src_data.data.columns)
+
+        for col,property in meta.columns.items():                                                                                     
+            if property['sdtype'] == 'categorical':                                                                                        
+                cat_cols.append(col)
+
+        col_maps = Utils.generate_col_maps(src_data, cat_cols)
+        # data_fake = Data(data, metadata=Metadata(meta))
+        data_fake = data
+
+        # df_fake2 = df_fake.copy()
+
+        # data_fake = Utils.convert_back_all_dates(data_fake)
+
+        df_fake2 = Utils.convert_types_pandas(data_fake, meta)
+
+        # df_fake2 = data_fake2.data
+        for col in col_maps.keys():
+            df_fake2 = Utils.discretize_column(df_fake2, col, col_maps)
+        
+        synthetic_data = Data(df_fake2, metadata=src_data.metadata)
+        data_inverse = Utils.convert_back_all_dates(synthetic_data)
+        return data_inverse
+    
+
+    def synthesize(self, sample_size: int = -1, 
+                   data=None) -> pd.DataFrame:
+        '''Create synthetic data.'''
+        # transform data
+        data_ = self.transform_data_prep(data)
+
+        if not self._trained:
+            self._train(data=data_)
+        if sample_size == -1:
+            sample_size = self._input_data_size
+
+        df_synth = self.sdv_model.sample(sample_size)
+
+        # check if data is an instance of DataFrame
+        if not isinstance(df_synth, pd.DataFrame) and isinstance(df_synth, np.ndarray):
+            # make it a datafame from numpy
+            df_synth = pd.DataFrame(df_synth, columns=data.data.columns)
+
+        data_synth_raw = Data(df_synth, metadata=data.metadata)
+        # inverse transform data
+        data_out = self.transform_data_inverse(data_synth_raw, data)
+        return data_out
+    
+
+    # def _train(self, data: Optional[Data] = None):
+    #     # transform data
+    #     data = self.transform_data_prep(data)
+
+    #     if data is None:
+    #         data = self._training_data
+
+    #     if hasattr(self._sdv_model, 'add_constraints'):
+    #         if self._constraints is not None:
+    #             self.sdv_model.add_constraints(self._constraints)
+
+    #     self.sdv_model.fit(data.data)
+    #     self._input_data_size = data.data.shape[0]
+    #     self._trained = True
 
 
 # class CTABGAN():

@@ -10,9 +10,9 @@ from sklearn.impute import IterativeImputer
 from ASyH.pipeline import Pipeline
 from ASyH.models import CopulaGANModel, CTGANModel, GaussianCopulaModel, TVAEModel, ForestFlowModel
 
-from ASyH.data import Data
+from ASyH.data import Data, Metadata
 from ASyH.hook import ScoringHook, PreprocessHook, PostprocessHook
-from ASyH.utils import flatten_dict
+from ASyH.utils import flatten_dict, Utils
 # import pdb
 
 # creating a custom logger
@@ -79,76 +79,6 @@ class ForestFlowPipeline(Pipeline):
 
     def add_postprocessing(self, postprocess_function):
         self._postprocessing_hook.add(postprocess_function)
-
-
-    # TODO: later on, wrap the following functions find_closest, generate_col_maps, ... in the static class
-    def find_closest(self, value, discrete_vals) -> float:
-        idx = np.argmin(np.abs(discrete_vals - value))
-        return discrete_vals[idx]
-    
-
-    def generate_col_maps(self, data, categoric_cols) -> dict:
-        df = data.data
-
-        def make_labels_to_nums(df_col) -> dict:
-            unique_labels = df_col.sort_values().unique()
-            label2num = {i:label for i,label in enumerate(unique_labels)}
-            return label2num
-        
-        col_maps = {}
-        for col in categoric_cols:
-            col_maps[col] = make_labels_to_nums(df[col])
-        return col_maps
-    
-
-    def discretize_column(self, df, col_name, col_maps) -> pd.DataFrame:
-        discrete_values = np.array(list(col_maps[col_name].keys()))
-        df[col_name] = df[col_name].apply(lambda val: (val/max(df[col_name]) * max(discrete_values)))
-        df[col_name] = df[col_name].apply(lambda val: self.find_closest(val, discrete_values))
-        df[col_name] = df[col_name].apply(lambda val: col_maps[col_name][val])
-        return df
-    
-
-    # apply the discretize_column function to all columns of interest in the dataframe df_forest
-    def discretize_cols(self, df, categoric_cols, col_maps) -> pd.DataFrame:
-        # df = data.data
-        for col in categoric_cols:
-            df_forest = self.discretize_column(df, col, col_maps)
-        return df_forest
-    
-
-    def identify_categorical_cols(self, data) -> list:
-        # metadata : the metadata object
-        # example of metadata content
-        # metadata.columns: 
-        # {'PATIENT_VISIT_IDENTIFIER': {'sdtype': 'id', 'regex_format': '[0-9]*'}, 'AGE_ABOVE65': {'sdtype': 'categorical'}}
-        # find all columns names that are categorical according to the metadata
-        metadata = data.metadata
-        categoric_cols = [col for col in data.data.columns if metadata.columns[col]['sdtype'] == 'categorical']
-        return categoric_cols
-    
-
-    def identify_float_columns_that_are_booleans(self, df):
-        float_cols = df.select_dtypes(include=["float"])  # Only float dtype columns
-        boolean_like_cols = []
-        for col in float_cols.columns:
-            series_no_na = float_cols[col].dropna()
-            # Check if all unique non-NA values are either 0.0 or 1.
-            unique_vals = set(series_no_na.unique())
-            if len(unique_vals) <= 2:
-                boolean_like_cols.append(col)
-        return boolean_like_cols
-
-
-    def identify_float_columns_that_are_integers(self, df):                                                          
-        float_cols = df.select_dtypes(include=["float"])  # Only float dtype columns                               
-        integer_like_cols = []                                                                                     
-        for col in float_cols.columns: # Drop missing values so we don't accidentally compare NaN                                    
-            series_no_na = float_cols[col].dropna()                                                                
-            # Check if all values are integers (fractional part is zero)                                           
-            if (series_no_na % 1 == 0).all():                                                                      
-                integer_like_cols.append(col)                                                                      
-        return integer_like_cols 
     
 
     # def run(self):
@@ -175,137 +105,102 @@ class ForestFlowPipeline(Pipeline):
     #     # weighted equally:
     #     scores = flatten_dict(detailed_scores)
     #     return sum(scores.values()) / len(scores)
-    
+
 
     def run(self):
-        df_int_cols = self.identify_float_columns_that_are_integers(self.input_data.data)
-        df_bool_cols = self.identify_float_columns_that_are_booleans(self.input_data.data)
-        meta = self._input_data.metadata
+        save_cwd = os.getcwd()
+        with tempfile.TemporaryDirectory() as workdir:
+            df_int_cols = Utils.identify_float_columns_that_are_integers(self._input_data.data)
+            df_bool_cols = Utils.identify_float_columns_that_are_booleans(self._input_data.data)
 
-        cat_indexes, int_indexes = [], []
+            meta = self._input_data.metadata
+            src_medset_raw = Data(self._input_data.data, metadata=Metadata(meta))
 
-        for col in meta['columns'].keys():
-            if meta['columns'][col]['sdtype'] == 'categorical':
-                cat_indexes.append(list(meta['columns'].keys()).index(col))
-            elif meta['columns'][col]['sdtype'] == 'id' or meta['columns'][col]['sdtype'] == 'numerical':
-                int_indexes.append(list(meta['columns'].keys()).index(col))
-            else:
-                pass
-
-        for col in self.input_data.data.columns:
-            if meta['columns'][col]['sdtype'] == 'numerical':
-                if col in df_int_cols:
-                    # df_medset[col] = df_medset[col].astype(int)
-                    meta['columns'][col]['computer_representation'] = 'Int'
-                elif col in df_bool_cols:
-                    meta['columns'][col]['sdtype'] = 'boolean'
-                else:
-                    meta['columns'][col]['computer_representation'] = 'Float'
-
-        X = self._input_data.data.to_numpy()
-        # print(X)
-        # ipdb.set_trace()
-
-        self.model._train(self._input_data)
-
-        Xy_fake = self.model.synthesize(batch_size=X.shape[0])
-        print(f"Regression problem: \n {Xy_fake}")
-        with open('fake_medset.npy', 'wb') as np_fl:
-            np.save(np_fl, Xy_fake)
-
-        return Xy_fake
+            src_medset = Utils.convert_all_dates(src_medset_raw)
+            df_src = src_medset.data
+            # ipdb.set_trace()
 
 
-# ASyH static class for preprocessing functions
-class Preprocess:
+            for col in df_src.columns:
+                if meta['columns'][col]['sdtype'] == 'numerical':
+                    if col in df_int_cols:
+                        # df_medset[col] = df_medset[col].astype(int)
+                        meta['columns'][col]['computer_representation'] = 'Int'
+                    elif col in df_bool_cols:
+                        meta['columns'][col]['sdtype'] = 'boolean'
+                    else:
+                        meta['columns'][col]['computer_representation'] = 'Float'
+                # else:
+                #     meta['columns'][col]['sdtype'] = 'boolean'
 
-    def __new__(cls, *args, **kwargs):
-        raise TypeError("Preprocess class cannot be instantiated.")
-    
-    @staticmethod
-    def normalize(data):
-        '''Normalize the data.'''
-        return data
-    
-    # the method that identifies the date columns in the dataframe (entry like '2021-01-01')
-    # and returns the list of these columns
-    @staticmethod
-    def identify_date_cols(data) -> list:
-        metadata = data.metadata
-        date_cols = [col for col in data.data.columns if metadata.columns[col]['sdtype'] == 'datetime']
-        return date_cols
-    
-    # the method that converts the dates in the dataframe to the number of days since the 1900-01-01
-    @staticmethod
-    def convert_dates(data, date_cols) -> pd.DataFrame:
-        df = data.data
-        for col in date_cols:
-            df[col] = pd.to_datetime(df[col])
-            df[col] = (df[col] - pd.Timestamp("1900-01-01")) // pd.Timedelta('1D')
-            # BREAK:
-            # import pudb.remote as remote; remote.set_trace()
-        return df
-    
-    # the method that does inverse operation to convert_dates
-    @staticmethod
-    def convert_back_dates(df, date_cols) -> pd.DataFrame:
+            # with open('meta_updated_medset.json', 'w') as fl_meta:
+            #     json.dump(meta, fl_meta)
 
-        assert isinstance(df, pd.DataFrame), "df must be a pandas DataFrame"
-        assert isinstance(date_cols, list), "date_cols must be a list"
-        assert all(col in df.columns for col in date_cols), "All columns in date_cols must be in df.columns"
+            # X = df_medset.values
+            X = df_src.to_numpy()
+            print(X)
+            # ipdb.set_trace()
 
-        for col in date_cols:
-            df[col] = pd.to_datetime(df[col] + pd.Timestamp("1900-01-01"), unit='D')
-        return df
-    
+            self.model._train(X)
 
-    # the function that applies identify_date_cols and convert_dates to the dataframe
-    @staticmethod
-    def convert_all_dates(data) -> Data:
-        metadata = data.metadata
-        logger.info(f"Metadata of columns is \n {metadata.columns}")
-        date_cols = Preprocess.identify_date_cols(data)
-        logger.info(f"Date columns are \n {date_cols}")
-        df = Preprocess.convert_dates(data, date_cols)
-        logger.info(f"The head of preprocessed data frame is \n {df.head()}")
-        data_obj = Data(df, metadata=metadata)
-        return data_obj
+            Xy_fake = self.model.synthesize(sample_size=X.shape[0])
 
-    
-    @staticmethod
-    def impute(input_data) -> Data:
-        # MICE = IterativeImputer(verbose=False)
-        metadata = input_data.metadata
-        imputer = IterativeImputer(
-            # estimator='RandomForestRegressor',              # Default: BayesianRidge
-            estimator=None,
-            max_iter=10,                 # Maximum iterations per feature
-            tol=0.001,                   # Stopping tolerance threshold
-            random_state=42,             # Reproducibility                                                                                     
-            initial_strategy='median'      # Initial imputation method
-            )
-        # set_trace() # breakpoint
-        imp_data = imputer.fit_transform(input_data.data)
-        imp_data = Data(imp_data, metadata=metadata)
-        return imp_data
+            print(f"Regression problem: \n {Xy_fake}")
 
-    
-    # its inverse function
-    @staticmethod
-    def convert_back_all_dates(data) -> Data:
-        # FIX:
-        # need to use metadata besides dataframe, or a data object
-        # cannot identify columns with datetime w/o that
-        metadata = data.metadata
-        date_cols = Preprocess.identify_date_cols(data)
-        df = Preprocess.convert_back_dates(data.data, date_cols)
-        data_obj = Data(df, metadata=metadata)
-        return data_obj
+            # with open('fake_medset.npy', 'wb') as np_fl:
+            #     np.save(np_fl, Xy_fake)
+
+            df_fake = pd.DataFrame(Xy_fake, columns=df_src.columns)
 
 
-    # the method that identifies the categorical columns in the dataframe
-    @staticmethod
-    def identify_categorical_cols(data) -> list:
-        metadata = data.metadata
-        categoric_cols = [col for col in data.data.columns if metadata.columns[col]['sdtype'] == 'categorical']
-        return categoric_cols
+            # validate the raw dataframe df_fake
+            # check if there are empty columns
+            empty_cols = df_fake.columns[df_fake.isna().all()]
+            if len(empty_cols) > 0:
+                print(f"Warning: Found empty columns: {list(empty_cols)}")
+
+            # ipdb.set_trace()
+
+            # Save the raw dataframe before conversion
+            # df_fake.to_csv('fake_medset_raw.csv', index=False)
+
+            # df_fake = convert_types_pandas(df_fake, meta)
+
+            data_medset = Data(df_src, metadata=Metadata(meta))
+
+            cat_cols = []
+            for col,property in meta['columns'].items():                                                                                     
+                if property['sdtype'] == 'categorical':                                                                                        
+                    cat_cols.append(col)
+
+            # Ensure cat_cols is not empty
+            if not cat_cols:
+                print("Warning: No categorical columns found in the metadata")
+
+            col_maps = Utils.generate_col_maps(data_medset, cat_cols)
+
+
+            data_fake = Data(df_fake, metadata=Metadata(meta))
+
+            # df_fake2 = df_fake.copy()
+
+            data_fake = Utils.convert_back_all_dates(data_fake)
+
+            df_fake2 = self.convert_types_pandas(data_fake.data, meta)
+
+            # df_fake2 = data_fake2.data
+            for col in col_maps.keys():
+                df_fake2 = self.discretize_column(df_fake2, col, col_maps)
+            
+            synthetic_data = Data(df_fake2, metadata=self._input_data.metadata)
+            # synthetic_data.set_metadata(self._input_data.metadata)
+            # self.add_postprocessing
+            # synthetic_data = self._postprocessing_hook.execute(synthetic_data)
+            detailed_scores = self._scoring_hook.execute(self._input_data,
+                                                            synthetic_data)
+        os.chdir(save_cwd)
+        print(f'{self.model.model_type} Scoring: {str(detailed_scores)}')
+        # Assuming, the scoring functions are maximizing, nomalized, and
+        # weighted equally:
+        scores = flatten_dict(detailed_scores)
+        return sum(scores.values()) / len(scores)

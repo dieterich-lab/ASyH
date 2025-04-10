@@ -12,45 +12,45 @@ from tqdm import tqdm
 # import pudb
 
 
-class Classifier(Module):
-    def __init__(self,input_dim, dis_dims,st_ed):
-        super(Classifier,self).__init__()
-        dim = input_dim-(st_ed[1]-st_ed[0])
-        seq = []
-        self.str_end = st_ed
-        for item in list(dis_dims):
-            seq += [
-                Linear(dim, item),
-                LeakyReLU(0.2),
-                Dropout(0.5)
-            ]
-            dim = item
+# class Classifier(Module):
+#     def __init__(self,input_dim, dis_dims,st_ed):
+#         super(Classifier,self).__init__()
+#         dim = input_dim-(st_ed[1]-st_ed[0])
+#         seq = []
+#         self.str_end = st_ed
+#         for item in list(dis_dims):
+#             seq += [
+#                 Linear(dim, item),
+#                 LeakyReLU(0.2),
+#                 Dropout(0.5)
+#             ]
+#             dim = item
         
-        if (st_ed[1]-st_ed[0])==1:
-            seq += [Linear(dim, 1)]
+#         if (st_ed[1]-st_ed[0])==1:
+#             seq += [Linear(dim, 1)]
         
-        elif (st_ed[1]-st_ed[0])==2:
-            seq += [Linear(dim, 1),Sigmoid()]
-        else:
-            seq += [Linear(dim,(st_ed[1]-st_ed[0]))] 
+#         elif (st_ed[1]-st_ed[0])==2:
+#             seq += [Linear(dim, 1),Sigmoid()]
+#         else:
+#             seq += [Linear(dim,(st_ed[1]-st_ed[0]))] 
         
-        self.seq = Sequential(*seq)
+#         self.seq = Sequential(*seq)
 
-    def forward(self, input):
+#     def forward(self, input):
         
-        label=None
+#         label=None
         
-        if (self.str_end[1]-self.str_end[0])==1:
-            label = input[:, self.str_end[0]:self.str_end[1]]
-        else:
-            label = torch.argmax(input[:, self.str_end[0]:self.str_end[1]], axis=-1)
+#         if (self.str_end[1]-self.str_end[0])==1:
+#             label = input[:, self.str_end[0]:self.str_end[1]]
+#         else:
+#             label = torch.argmax(input[:, self.str_end[0]:self.str_end[1]], axis=-1)
         
-        new_imp = torch.cat((input[:,:self.str_end[0]],input[:,self.str_end[1]:]),1)
+#         new_imp = torch.cat((input[:,:self.str_end[0]],input[:,self.str_end[1]:]),1)
         
-        if ((self.str_end[1]-self.str_end[0])==2) | ((self.str_end[1]-self.str_end[0])==1):
-            return self.seq(new_imp).view(-1), label
-        else:
-            return self.seq(new_imp), label
+#         if ((self.str_end[1]-self.str_end[0])==2) | ((self.str_end[1]-self.str_end[0])==1):
+#             return self.seq(new_imp).view(-1), label
+#         else:
+#             return self.seq(new_imp), label
         
 
 def apply_activate(data, output_info):
@@ -357,7 +357,7 @@ class CTABGANSynthesizer:
                  num_channels=64,
                  l2scale=1e-5,
                  batch_size=500,
-                 epochs=150,
+                 epochs=1,
                  **kwargs):
 
         self.random_dim = random_dim
@@ -408,7 +408,7 @@ class CTABGANSynthesizer:
         optimizerD = Adam(discriminator.parameters(), **optimizer_params)
 
         st_ed = None
-        classifier=None
+        # classifier=None
         optimizerC= None
         
         self.generator.apply(weights_init)
@@ -578,3 +578,11 @@ class CTABGANSynthesizer:
             result  = np.concatenate([result,res],axis=0)
         
         return result[0:n]
+    
+
+    def save(self, save_prefix="."):
+        torch.save(self.generator.state_dict(), save_prefix)
+        torch.save(self.discriminator.state_dict(), save_prefix + "_discriminator")
+        # self.cond_generator.save(path + "/cond_generator.pkl")
+        # self.classifier.save(path + "/classifier.pkl")
+        # self.classifier = None

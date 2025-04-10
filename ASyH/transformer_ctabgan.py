@@ -220,12 +220,13 @@ class DataTransformer():
         self.model = model
         
 
-    def transform(self, data0, ispositive = False, positive_list = None):
+    def transform(self, data, ispositive = False, positive_list = None):
+
+        data = data.values
+
         values = []
         mixed_counter = 0
-        # REVIEW
-        # data = self._fit(data0)
-        data = data0
+
         for id_, info in enumerate(self.meta):
             ## ? Insert here the code to check the data type of current column
             ## then convert it to the numeric if it is str ?
@@ -422,7 +423,7 @@ class DataTransformer():
                   tmp = u * 4 * std_t + mean_t
                                     
                   for idx,val in enumerate(tmp):
-                     pdb.set_trace() 
+                    #  pdb.set_trace() 
                     ## FIXME
                     # stack_trace_396_241205.txt
                     # (when called )
