@@ -120,3 +120,53 @@ def test_train_synthesize_gaussian_copula_model(input_data):
     m._train(input_data)
     assert m._trained
     m.synthesize()
+
+
+def test_construct_forest_flow_model():
+    """Testing initialization of the CTGAN model"""
+    m = ASyH.models.ForestFlowModel()
+    assert m.model_type == 'ForestFlowSynthesizer'
+    # private state:
+    assert m._trained is False
+    assert m._training_data is None
+    assert m._metadata is None
+
+
+def test_train_synthesize_forest_flow_model(input_data):
+    """Testing training and synthesis with CTGANModel.  Since the training
+    process takes a long time, training and synthesis are combined into one
+    test.
+    """
+    m = ASyH.models.ForestFlowModel()
+    # without specifying any training data in ctor or _train(), there should
+    # be an AssertError in _train():
+    with pytest.raises(AssertionError):
+        m._train()
+    m._train(input_data)
+    assert m._trained
+    m.synthesize()
+
+
+def test_construct_cpar_model():
+    """Testing initialization of the CTGAN model"""
+    m = ASyH.models.CPARModel()
+    assert m.model_type == 'CPARSynthesizer'
+    # private state:
+    assert m._trained is False
+    assert m._training_data is None
+    assert m._metadata is None
+
+
+def test_train_synthesize_cpar_model(input_data):
+    """Testing training and synthesis with CTGANModel.  Since the training
+    process takes a long time, training and synthesis are combined into one
+    test.
+    """
+    m = ASyH.models.CPARModel()
+    # without specifying any training data in ctor or _train(), there should
+    # be an AssertError in _train():
+    with pytest.raises(AssertionError):
+        m._train()
+    m._train(input_data)
+    assert m._trained
+    m.synthesize()
