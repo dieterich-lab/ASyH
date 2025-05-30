@@ -37,6 +37,7 @@ parser.add_argument("--input_format", dest="input_format", type=str)
 parser.add_argument("--metadata_file", dest="METADATA_FILE", type=str)
 parser.add_argument("--output_name_root", dest="OUTPUT_NAME_ROOT", type=str)
 parser.add_argument("--to-preprocess", dest="PREPROCESS", type=bool)
+parser.add_argument("--longitudinal", dest="LONGITUDE", type=bool)
 
 
 def readData(input_file, ext, **kwargs) -> pd.DataFrame:
@@ -61,7 +62,8 @@ if __name__ == '__main__':
     MODEL_FILENAME = OUTPUT_NAME + '.pkl'
     # pdb.set_trace()
 
-    asyh = ASyH.Application(preprocess=args.PREPROCESS)
+    asyh = ASyH.Application(preprocess=args.PREPROCESS, longitudinal=args.LONGITUDE)
+    logger.info("ASyH Application has been initialized")   # Logs to console and file
 
 
     # Reporting

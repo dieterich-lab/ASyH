@@ -41,7 +41,10 @@ class Application:
         return map_model2pipeline[model]
 
 
-    def __init__(self, preprocess=False, models=None, constraints=None):
+    def __init__(self, preprocess=False, 
+                 models=None, 
+                 constraints=None,
+                 longitudinal=False):
         '''
         Initialize the application with a list of models
         and a flag for preprocessing.
@@ -60,6 +63,17 @@ class Application:
         self.constraints = constraints
         self.input_data = None
         self.metadata = None
+        self._longitudinal = longitudinal
+        if self.models is not None:
+            assert isinstance(self.models, list), \
+                'models should be a list of model names'
+            for model in self.models:
+                assert model in ['TVAE', 'CTGAN', 'CopulaGAN', 'GaussianCopula', 'ForestFlowModel'], \
+                    f'Unknown model {model} specified'
+        else:
+            self.models = ['TVAE', 'CTGAN', 'CopulaGAN', 'GaussianCopula', 'ForestFlowModel']
+        if self._longitudinal:
+            print("Longitudinal data processing is enabled.")
 
 
     def _add_scoring(self, scoring_function, pipelines=None):

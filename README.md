@@ -26,6 +26,7 @@ The following flags are available so far via the CMD of the launcher "launcher.p
 - "--metadata_file" : the name of the file with stored metadata
 - "--output_name_root" : how the output file would be named
 - "--to-preprocess" : boolean option, if the input shall be preprocessed, e.g. imputed missing values
+- "--longitudinal" : boolean option, if an app must produce also longitudinal information
 
 #### Examples of command-line usages
 The basic usage for making a new table based on reference tabular dataset:
@@ -113,6 +114,17 @@ The regex string should use Perl-style regular expression syntax (cf. also the [
 
 * `datetime_format` is **required** for datetime type variables.  
 The `SPECIFIER_VALUE` for this specifier is a string in [strftime format](https://docs.python.org/3/library/datetime.html#strftime-and-strptime-format-codes).
+
+### The metadata format for longitudinal data
+```JSON
+{"columns":
+    { ...column specifications...
+    },
+ "primary_key":...,
+ "sequence_key":...
+}
+If you intend to produce longitudinal data, make sure that `sequence_key` is included in json file
+```
 
 
 ## Pre-processing pipeline
