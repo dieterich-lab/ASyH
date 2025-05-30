@@ -226,7 +226,13 @@ class ForestFlowModel(Model):
                       sdv_model_class=CTABGANSynthesizer,
                       data=data,
                       override_args=override_args)
-    
+        self.data = data
+        self._model_type = 'ForestFlowSynthesizer'
+        self._trained = False
+        # the columns which will be temporarily removed from the data until inverse transformation
+        self.hidden_columns = [col for col in data.data.columns if '_u' in col]
+        self.data_hidden = None
+        
 
     def adapted_arguments(self, data: Optional[Data] = None) -> Dict[str, Any]:
         '''Create SDV model specific argument dict to pass to the constructor.
@@ -236,7 +242,7 @@ class ForestFlowModel(Model):
         specific SDV model constructor with the ** operator:
         sdv_model_class(**adapt_arguments(data)) => adapted SDV model'''
         data_size = len(data.data.columns)
-        dim = 4*data_size
+        dim = 4 * data_size
         hidden_layer_dims = (dim, dim)
         return {'metadata': _get_metadata_from_data(data),
                 'generator_dim': hidden_layer_dims,
@@ -244,6 +250,11 @@ class ForestFlowModel(Model):
     
 
     def transform_data_prep(self, data: Data) -> Data:
+        # remove hidden columns from the data and store them in a separate dataframe
+        self.data_hidden = data.data[self.hidden_columns]
+        df_data = data.data.drop(columns=self.hidden_columns, axis=1)
+        data = Data(df_data, metadata=data.metadata)
+
         data = Utils.convert_all_dates(data)
 
         # check if the dataframe df contains nans
@@ -277,7 +288,7 @@ class ForestFlowModel(Model):
         #     data = pd.DataFrame(data, columns=src_data.data.columns)
 
         for col,property in meta.columns.items():                                                                                     
-            if property['sdtype'] == 'categorical':                                                                                        
+            if property['sdtype'] != 'numerical':                                                                                        
                 cat_cols.append(col)
 
         col_maps = Utils.generate_col_maps(src_data, cat_cols)
@@ -293,6 +304,9 @@ class ForestFlowModel(Model):
         # df_fake2 = data_fake2.data
         for col in col_maps.keys():
             df_fake2 = Utils.discretize_column(df_fake2, col, col_maps)
+
+        # return hidden columns to the dataframe df_fake2 using self.data_hidden
+        df_fake2 = pd.concat([df_fake2, self.data_hidden], axis=1)
         
         synthetic_data = Data(df_fake2, metadata=src_data.metadata)
         data_inverse = Utils.convert_back_all_dates(synthetic_data)
@@ -302,10 +316,16 @@ class ForestFlowModel(Model):
     def synthesize(self, sample_size: int = -1, 
                    data=None) -> pd.DataFrame:
         '''Create synthetic data.'''
+        if data is None:
+            data = self.data
+        # check if data is an instance of Data
+        assert isinstance(data, Data), 'Data is not an instance of Data'
+
         # transform data
         data_ = self.transform_data_prep(data)
 
         if not self._trained:
+            import ipdb; ipdb.set_trace()
             self._train(data=data_)
         if sample_size == -1:
             sample_size = self._input_data_size
@@ -320,7 +340,7 @@ class ForestFlowModel(Model):
         data_synth_raw = Data(df_synth, metadata=data.metadata)
         # inverse transform data
         data_out = self.transform_data_inverse(data_synth_raw, data)
-        return data_out
+        return data_out.data
     
 
     # def _train(self, data: Optional[Data] = None):
@@ -379,3 +399,36 @@ class ForestFlowModel(Model):
 #         return_dict[numerical] = ('', 0.0)
 #     return_dict['categorical'] = ('', 0.0)
 #     return return_dict
+
+class CPARModel(Model):
+    '''
+    Specific ASyH Model for SDV\'s CPAR model,
+    responsible for longitudinal multi-variate data generation.
+    '''
+
+    def __init__(self, data: Optional[Data] = None, override_args=None):
+        Model.__init__(self,
+                       sdv_model_class=sdv.sequential.PARSynthesizer,
+                       data=data,
+                       override_args=override_args)
+        self.data = data
+        self._model_type = 'CPARSynthesizer'
+        self._trained = False
+        # the columns which will be temporarily removed from the data until inverse transformation
+        # self.hidden_columns = [col for col in data.data.columns if '_u' in col]
+        # self.data_hidden = None
+
+
+    def adapted_arguments(self, data: Optional[Data] = None) -> Dict[str, Any]:
+        '''Create SDV model specific argument dict to pass to the constructor.
+        This method is meant to adapt the CopulaGAN sdv model internals to the
+        input data.
+        The method returns a dict of keyword arguments to be passed to the
+        specific SDV model constructor with the ** operator:
+        sdv_model_class(**adapt_arguments(data)) => adapted SDV model'''
+        data_size = len(data.data.columns)
+        dim = 4 * data_size
+        hidden_layer_dims = (dim, dim)
+        return {'metadata': _get_metadata_from_data(data),
+                'generator_dim': hidden_layer_dims,
+                'discriminator_dim': hidden_layer_dims}

@@ -13,8 +13,9 @@ dependencies = [
     'jinja2 == 3.1.2',
 ]
 
+# prevent recursive directory structure - https://github.com/pypa/setuptools/issues/4076
 [tool.setuptools.packages.find]
-exclude = ['tests']
+exclude = ['tests', 'build*']
 
 [project.optional-dependencies]
 tests = [

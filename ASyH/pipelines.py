@@ -8,7 +8,7 @@ from sklearn.experimental import enable_iterative_imputer
 from sklearn.impute import IterativeImputer
 
 from ASyH.pipeline import Pipeline
-from ASyH.models import CopulaGANModel, CTGANModel, GaussianCopulaModel, TVAEModel, ForestFlowModel
+from ASyH.models import CopulaGANModel, CTGANModel, GaussianCopulaModel, TVAEModel, ForestFlowModel, CPARModel
 
 from ASyH.data import Data, Metadata
 from ASyH.hook import ScoringHook, PreprocessHook, PostprocessHook
@@ -69,7 +69,6 @@ class TVAEPipeline(Pipeline):
                                           override_args=override_args),
                           input_data=input_data)
         
-
 class ForestFlowPipeline(Pipeline):
 
     def __init__(self, input_data, override_args={"constraints": None}):
@@ -79,7 +78,6 @@ class ForestFlowPipeline(Pipeline):
 
     def add_postprocessing(self, postprocess_function):
         self._postprocessing_hook.add(postprocess_function)
-    
 
     # def run(self):
     #     save_cwd = os.getcwd()
@@ -118,8 +116,8 @@ class ForestFlowPipeline(Pipeline):
 
             src_medset = Utils.convert_all_dates(src_medset_raw)
             df_src = src_medset.data
-            # ipdb.set_trace()
 
+            # import ipdb; ipdb.set_trace() # TODO: comment out later
 
             for col in df_src.columns:
                 if meta['columns'][col]['sdtype'] == 'numerical':
@@ -204,3 +202,39 @@ class ForestFlowPipeline(Pipeline):
         # weighted equally:
         scores = flatten_dict(detailed_scores)
         return sum(scores.values()) / len(scores)
+    
+
+class CPARPipeline(Pipeline):
+    def __init__(self, input_data, override_args={"constraints": None}):
+        self.df = input_data.data
+        self.metadata = input_data.metadata
+        self.context_columns = ["age", "gender", "deceased"]
+        self.enforce_min_max_values = True
+        override_args = {**override_args,
+            "metadata": self.metadata,
+            "context_columns": self.context_columns,
+            "epochs": 100,
+            "enforce_min_max_values": self.enforce_min_max_values,
+            "verbose": True,
+            # "cuda": False, # TODO: check later if we need this
+        }
+        super().__init__(model=CPARModel(data=input_data,
+                                          override_args=override_args),
+                          input_data=input_data)
+        
+    def run(self):
+        model_path = os.path.join(model_dir, "cpar.pkl")
+        # model = PARSynthesizer(
+        #     metadata=metadata,
+        #     context_columns=context_columns,
+        #     epochs=epochs,
+        #     sample_size=sample_size,
+        #     cuda=cuda,
+        #     verbose=True,
+        #     enforce_min_max_values=True,
+        #     enforce_rounding=False,
+        #     locales=None,
+        #     segment_size=None,
+        # )
+        self.model.fit(df)
+        self.model.save(model_path)
