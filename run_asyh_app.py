@@ -52,6 +52,8 @@ if __name__ == '__main__':
 
     # pdb.set_trace()
     # FILENAME_ROOT = 'Kaggle_Sirio_Libanes-16features'
+    print(f"Input file name root is {args.INPUT_NAME_ROOT}")
+    print(f"Input file format is {args.input_format}")
     INPUT_FILE = args.INPUT_NAME_ROOT + "." + args.input_format
     METADATA_FILE = args.METADATA_FILE
     # INPUT_FILENAME = INPUT_NAME_ROOT + '.xlsx'

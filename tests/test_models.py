@@ -148,7 +148,7 @@ def test_train_synthesize_forest_flow_model(input_data):
 
 
 def test_construct_cpar_model():
-    """Testing initialization of the CTGAN model"""
+    """Testing initialization of the CPAR model"""
     m = ASyH.models.CPARModel()
     assert m.model_type == 'CPARSynthesizer'
     # private state:
@@ -158,7 +158,7 @@ def test_construct_cpar_model():
 
 
 def test_train_synthesize_cpar_model(input_data):
-    """Testing training and synthesis with CTGANModel.  Since the training
+    """Testing training and synthesis with CPAR model.  Since the training
     process takes a long time, training and synthesis are combined into one
     test.
     """
