@@ -7,7 +7,7 @@ import sdmetrics.reports.single_table
 from ASyH.data import Data
 from ASyH.metadata import Metadata
 from ASyH.pipelines \
-    import CopulaGANPipeline, TVAEPipeline, \
+    import CopulaGANPipeline, TVAEPipeline, CPARPipeline, \
     CTGANPipeline, GaussianCopulaPipeline, ForestFlowPipeline
 from ASyH.utils import Utils
 from ASyH.dispatch import concurrent_dispatch
@@ -36,7 +36,8 @@ class Application:
             'CTGAN': CTGANPipeline,
             'CopulaGAN': CopulaGANPipeline,
             'GaussianCopula': GaussianCopulaPipeline,
-            'ForestFlowModel': ForestFlowPipeline
+            'ForestFlowModel': ForestFlowPipeline,
+            'CPARModel': CPARPipeline
         }
         return map_model2pipeline[model]
 
@@ -64,16 +65,19 @@ class Application:
         self.input_data = None
         self.metadata = None
         self._longitudinal = longitudinal
+
         if self.models is not None:
             assert isinstance(self.models, list), \
                 'models should be a list of model names'
             for model in self.models:
                 assert model in ['TVAE', 'CTGAN', 'CopulaGAN', 'GaussianCopula', 'ForestFlowModel'], \
                     f'Unknown model {model} specified'
-        else:
-            self.models = ['TVAE', 'CTGAN', 'CopulaGAN', 'GaussianCopula', 'ForestFlowModel']
-        if self._longitudinal:
+        elif self._longitudinal:
             print("Longitudinal data processing is enabled.")
+            self.models = ['CPARModel']
+        else:
+            print("No models specified, using default model list.")
+            self.models = ['TVAE', 'CTGAN', 'CopulaGAN', 'GaussianCopula', 'ForestFlowModel']
 
 
     def _add_scoring(self, scoring_function, pipelines=None):
@@ -159,8 +163,15 @@ class Application:
         """
         input_data.set_metadata(metadata)
 
+        print(f"Used models are: {self.models} ...")
+
         if self.models is not None:
-            pipelines = [self.model2pipeline(model)(input_data, override_args={'constraints':self.constraints}) for model in self.models]
+            # pipelines = [self.model2pipeline(model)(input_data, override_args={'constraints':self.constraints}) for model in self.models]
+            pipelines = []
+            for model in self.models:
+                print(f"Creating pipeline for model {model} ...")
+                pipelines.append(self.model2pipeline(model)(input_data,
+                                                            override_args={'constraints':self.constraints}))
         else:
             pipelines = [pipe(input_data, override_args={'constraints':self.constraints}) \
                           for pipe in [TVAEPipeline, 

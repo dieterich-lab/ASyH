@@ -48,8 +48,7 @@ class CopulaGANPipeline(Pipeline):
 class CTGANPipeline(Pipeline):
 
     def __init__(self, input_data, override_args={"constraints": None}):
-        super().__init__(self,
-                          model=CTGANModel(data=input_data,
+        super().__init__(model=CTGANModel(data=input_data,
                                            override_args=override_args),
                           input_data=input_data)
 
@@ -206,11 +205,14 @@ class ForestFlowPipeline(Pipeline):
 
 class CPARPipeline(Pipeline):
     def __init__(self, input_data, override_args={"constraints": None}):
-        self.df = input_data.data
+        # self.df = input_data.data
+        self.df = input_data
         self.metadata = input_data.metadata
-        self.context_columns = ["age", "gender", "deceased"]
+        # self.context_columns = ["age", "gender", "deceased"]
+        self.context_columns = []
         self.enforce_min_max_values = True
-        override_args = {**override_args,
+        self.model_dir = './models/cpar'
+        self.override_args = {**override_args,
             "metadata": self.metadata,
             "context_columns": self.context_columns,
             "epochs": 100,
@@ -218,12 +220,17 @@ class CPARPipeline(Pipeline):
             "verbose": True,
             # "cuda": False, # TODO: check later if we need this
         }
+        print("PAR model is being initialized with the following arguments:")
+        print(self.override_args)
+        import ipdb; ipdb.set_trace()
         super().__init__(model=CPARModel(data=input_data,
-                                          override_args=override_args),
+                                          override_args=self.override_args),
                           input_data=input_data)
         
     def run(self):
-        model_path = os.path.join(model_dir, "cpar.pkl")
+        if not os.path.exists(self.model_dir):
+            os.makedirs(self.model_dir)
+        model_path = os.path.join(self.model_dir, "cpar.pkl")
         # model = PARSynthesizer(
         #     metadata=metadata,
         #     context_columns=context_columns,
@@ -236,5 +243,5 @@ class CPARPipeline(Pipeline):
         #     locales=None,
         #     segment_size=None,
         # )
-        self.model.fit(df)
+        self.model.fit(self.df)
         self.model.save(model_path)

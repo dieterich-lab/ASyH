@@ -25,6 +25,10 @@ import pandas as pd
 RAND_MAX = 65536
 
 
+def get_metadata_from_data(data):
+    return None if data.metadata is None else data.sdv_metadata
+
+
 class CTGAN2(sdv.single_table.CTGANSynthesizer):
     _model_sdtype_transformers = {
         'categorical': None,
@@ -96,14 +100,10 @@ class TVAEModel(Model):
         data_size = len(data.data.columns)
         dim = 2*data_size
         hidden_layer_dims = (dim, dim)
-        return {'metadata': _get_metadata_from_data(data),
+        return {'metadata': get_metadata_from_data(data),
                 'compress_dims': hidden_layer_dims,
                 'decompress_dims': hidden_layer_dims,
                 'embedding_dim': dim}
-
-
-def _get_metadata_from_data(data):
-    return None if data.metadata is None else data.sdv_metadata
 
 
 class CTGANModel(Model):
@@ -126,7 +126,7 @@ class CTGANModel(Model):
         data_size = len(data.data.columns)
         dim = 4*data_size
         hidden_layer_dims = (dim, dim)
-        return {'metadata': _get_metadata_from_data(data),
+        return {'metadata': get_metadata_from_data(data),
                 'generator_dim': hidden_layer_dims,
                 'discriminator_dim': hidden_layer_dims}
 
@@ -150,7 +150,7 @@ class CopulaGANModel(Model):
         data_size = len(data.data.columns)
         dim = 4*data_size
         hidden_layer_dims = (dim, dim)
-        return {'metadata': _get_metadata_from_data(data),
+        return {'metadata': get_metadata_from_data(data),
                 'generator_dim': hidden_layer_dims,
                 'discriminator_dim': hidden_layer_dims}
 
@@ -170,7 +170,7 @@ class GaussianCopulaModel(Model):
 
     def adapted_arguments(self, data: Optional[Data] = None) -> Dict[str, Any]:
         '''Method to adapt the Gaussian Copula sdv model internals to data'''
-        args = {'metadata': _get_metadata_from_data(data)}
+        args = {'metadata': get_metadata_from_data(data)}
         args.update(self._tune_GCM_distributions(data))
         return args
 
@@ -180,7 +180,7 @@ class GaussianCopulaModel(Model):
         column_distributions = dict()
 
         for dist in sdv.single_table.copulas.GaussianCopulaSynthesizer._DISTRIBUTIONS:
-            GCM_model = self.Regressed_GaussianCopulaSynthesizer(metadata=_get_metadata_from_data(data),
+            GCM_model = self.Regressed_GaussianCopulaSynthesizer(metadata=get_metadata_from_data(data),
                                                                  default_distribution=dist)
             GCM_model.fit(data.data)
             synth_data = GCM_model.sample(data.data.shape[0])
@@ -244,7 +244,7 @@ class ForestFlowModel(Model):
         data_size = len(data.data.columns)
         dim = 4 * data_size
         hidden_layer_dims = (dim, dim)
-        return {'metadata': _get_metadata_from_data(data),
+        return {'metadata': get_metadata_from_data(data),
                 'generator_dim': hidden_layer_dims,
                 'discriminator_dim': hidden_layer_dims}
     
@@ -426,9 +426,20 @@ class CPARModel(Model):
         The method returns a dict of keyword arguments to be passed to the
         specific SDV model constructor with the ** operator:
         sdv_model_class(**adapt_arguments(data)) => adapted SDV model'''
-        data_size = len(data.data.columns)
-        dim = 4 * data_size
-        hidden_layer_dims = (dim, dim)
-        return {'metadata': _get_metadata_from_data(data),
-                'generator_dim': hidden_layer_dims,
-                'discriminator_dim': hidden_layer_dims}
+        # data_size = len(data.data.columns)
+        metadata = get_metadata_from_data(data)
+        if isinstance(metadata, Metadata):
+            metadata = metadata.metadata
+        else:
+            assert isinstance(metadata, sdv.metadata.SingleTableMetadata), \
+                'metadata should be an instance of SingleTableMetadata'
+        # dim = 4 * data_size
+        # hidden_layer_dims = (dim, dim)
+        return {
+                'metadata': metadata,
+                'verbose': True,
+                'epochs': 100,
+                # 'context_columns': ['']
+                'enforce_min_max_values': True,
+                'cuda': False
+                }

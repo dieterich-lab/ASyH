@@ -374,9 +374,14 @@ class CTABGANSynthesizer:
     def fit(self, train_data=pd.DataFrame, categorical=[], mixed={}, general=[], non_categorical=[]):
 
         # TODO: replace datatransformer with default SDV method
-        self.transformer = DataTransformer(train_data=train_data, categorical_list=categorical, mixed_dict=mixed, general_list=general, non_categorical_list=non_categorical)
-        self.transformer.fit() 
+        print("Initializing Data transformer for Forest Flow ...")
+        import ipdb; ipdb.set_trace() # remove later
+        self.transformer = DataTransformer(train_data=train_data, categorical_list=categorical, 
+                                           mixed_dict=mixed, general_list=general, non_categorical_list=non_categorical)
+        self.transformer.fit()
         # train_data = self.transformer.transform()
+        # breakpoint
+        import pdb; pdb.set_trace() # remove later
         train_data = self.transformer.transform(train_data)
         # import pdb; pdb.set_trace();
         data_sampler = Sampler(train_data, self.transformer.output_info)

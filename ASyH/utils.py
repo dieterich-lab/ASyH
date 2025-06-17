@@ -195,7 +195,8 @@ class Utils:
         df = data.data
 
         def make_labels_to_nums(df_col) -> dict:
-            unique_labels = df_col.sort_values().unique()
+            unique_labels = df_col.unique()
+            unique_labels.sort()
             label2num = {i:label for i,label in enumerate(unique_labels)}
             return label2num
         
@@ -258,3 +259,43 @@ class Utils:
         df_new = pd.DataFrame(df_new_dict)
 
         return df_new
+    
+
+    # the method to get categorical columns from the metadata
+    @staticmethod
+    def get_categorical_columns_meta(metadata) -> list:
+        categoric_cols = [col for col in metadata.columns if metadata.columns[col]['sdtype'] == 'categorical']
+        return categoric_cols
+    
+    # the method to get non_categorical columns from the metadata, id est - numerical
+    @staticmethod
+    def get_non_categorical_columns_meta(metadata) -> list:
+        non_categoric_cols = [col for col in metadata.columns if metadata.columns[col]['sdtype'] != 'categorical']
+        return non_categoric_cols
+    
+
+    # the function which analyzes the content of the given dataframe column and identifies if 
+    # it is a categorical or numerical by checking unique values
+    @staticmethod
+    def identify_column_type(df, col_name) -> str:
+        # Check if the column is numerical using pandas api
+        if pd.api.types.is_numeric_dtype(df[col_name]):
+            return 'numerical'
+        # Check if the column is categorical using pandas api
+        elif pd.api.types.is_categorical_dtype(df[col_name]):
+            return 'categorical'
+        # additional check if it is categorical by comparing unique values and all values in the column
+        # if the values are string
+        elif pd.api.types.is_string_dtype(df[col_name]):
+            if df[col_name].nunique() < df[col_name].count():
+                return 'categorical'
+            else:
+                return 'unknown'
+        else:
+            return 'unknown'
+
+    # # the function that receives pandas dataframe and returns the list of columns that are categorical
+    # @staticmethod
+    # def get_categorical_columns(df) -> list:
+    #     categoric_cols = [col for col in df.columns if df[col].dtype == 'category']
+    #     return categoric_cols

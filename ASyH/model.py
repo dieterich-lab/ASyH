@@ -100,6 +100,13 @@ class Model(ABC):
         self._sdv_model.fit(data.data)
         self._input_data_size = data.data.shape[0]
         self._trained = True
+    
+    
+    # fit method - basically the same as _train, but
+    # it is used by the SDV model class, so we need to keep it
+    def fit(self, data: Optional[Data] = None):
+        '''Fit the model to the data.'''
+        self._train(data)
 
 
     def save(self, filename: Optional[str] = None):
@@ -189,6 +196,12 @@ class ModelX(ABC):
         self._ext_model.fit(data.data)
         self._input_data_size = data.data.shape[0]
         self._trained = True
+    
+    # fit method - basically the same as _train, but
+    # it is used by the SDV model class, so we need to keep it
+    def fit(self, data: Optional[Data] = None):
+        '''Fit the model to the data.'''
+        self._train(data)
 
     def save(self, filename: Optional[str] = None):
         '''Save the ext model to pkl.'''

@@ -4,7 +4,7 @@ import torch
 from sklearn.mixture import BayesianGaussianMixture
 # import pudb
 import rdt
-
+from ASyH.utils import Utils
 import pdb
 
 
@@ -15,14 +15,37 @@ class DataTransformer():
         self.n_clusters = n_clusters
         self.eps = eps
         self.train_data = train_data
-        self.categorical_columns= categorical_list
         self.mixed_columns= mixed_dict
         self.general_columns = general_list
-        self.non_categorical_columns= non_categorical_list
+        # self.non_categorical_columns= non_categorical_list
+        self.categorical_columns = categorical_list
+        self.non_categorical_columns = non_categorical_list
         
 
     def get_metadata(self):
         meta = []
+
+        # check if self.non_categorical_columns and self.categorical_columns and self.mixed_columns are NOT empty
+        # otherwise, iterate over the columns and identify its type using Utils method identify_column_type,
+        # then add its index to respective list
+        if len(self.non_categorical_columns) == 0 and len(self.categorical_columns) == 0 and len(self.mixed_columns) == 0:
+            # iterate over columns in the train_data
+            for index in range(self.train_data.shape[1]):
+                # column = self.train_data.iloc[:,index]
+                # using index get respective column name
+                column = self.train_data.iloc[:,index].name
+                # use the method from Utils - identify_column_type to identify the column type
+                col_type = Utils.identify_column_type(self.train_data, column)
+                match col_type:
+                    case 'categorical':
+                        self.categorical_columns.append(index)
+                    case 'numerical':
+                        self.non_categorical_columns.append(index)
+                    case 'unknown':
+                        # self.mixed_columns.append(index)
+                        # update the mixed_columns dictionary
+                        self.mixed_columns[index] = []
+
         for index in range(self.train_data.shape[1]):
             ## REVIEW : added the checks for data type of dataframe columns
             # and if it is either object or string -> modified by the parser method
@@ -30,46 +53,77 @@ class DataTransformer():
             col_dtype = str(column.dtype)
             if 'str' in col_dtype or 'object' in col_dtype:
                 column = self._parse(column)
-            # import pdb; pdb.set_trace()
-            if index in self.categorical_columns:
+
+            try:
+                # import pdb; pdb.set_trace()
                 if index in self.non_categorical_columns:
                     meta.append({
-                      "name": index,
-                      "type": "continuous",
-                      # "min": column.min(),
-                      "min": np.min(column),
-                      # "max": column.max(),
-                      "max": np.max(column),
+                        "name": index,
+                        "type": "continuous",
+                        # "min": column.min(),
+                        "min": np.min(column),
+                        # "max": column.max(),
+                        "max": np.max(column),
                     })
-                else:
-                    mapper = column.value_counts().index.tolist()
+
+                elif index in self.categorical_columns:
+                    try:
+                        mapper = column.value_counts().index.tolist()
+                        meta.append({
+                            "name": index,
+                            "type": "categorical",
+                            "size": len(mapper),
+                            "i2s": mapper
+                        })
+                    except Exception as e:
+                        print(f"Error processing column {index}: {e}")
+                        # Handle the error as needed, e.g., log it or raise an exception
+                        # get column size
+                        # col_size = len(column.value_counts())
+                        if type(column) == list:
+                            col_size = len(set(column))
+                        else:
+                            col_size = len(column.unique())
+                        meta.append({
+                            "name": index,
+                            "type": "unknown",
+                            # "error": str(e)
+                            "size": col_size
+                        })
+
+                elif index in self.mixed_columns.keys():
                     meta.append({
                         "name": index,
-                        "type": "categorical",
-                        "size": len(mapper),
-                        "i2s": mapper
+                        "type": "mixed",
+                        # "min": column.min(),
+                        "min": np.min(column),
+                        # "max": column.max(),
+                        "max": np.max(column),
+                        "modal": self.mixed_columns[index]
                     })
-
-            elif index in self.mixed_columns.keys():
+                else:
+                    pass
+                    # meta.append({
+                    #     "name": index,
+                    #     "type": "continuous",
+                    #     # "min": column.min(),
+                    #     "min": np.min(column),
+                    #     # "max": column.max(),
+                    #     "max": np.max(column),
+                    # })
+            except Exception as e:
+                print(f"Error processing column {index}: {e}")
+                # Handle the error as needed, e.g., log it or raise an exception
                 meta.append({
                     "name": index,
-                    "type": "mixed",
-                    # "min": column.min(),
-                    "min": np.min(column),
-                    # "max": column.max(),
-                    "max": np.max(column),
-                    "modal": self.mixed_columns[index]
-                })
-            else:
-                meta.append({
-                    "name": index,
-                    "type": "continuous",
-                    # "min": column.min(),
-                    "min": np.min(column),
-                    # "max": column.max(),
-                    "max": np.max(column),
-                })            
+                    "type": "unknown",
+                    # columnz size
+                    "size": len(column.value_counts())
+                    # "error": str(e)
+                })           
 
+        print("Meta data: ", meta)
+        import ipdb; ipdb.set_trace() # TODO: comment out later
         return meta
 
 
@@ -215,6 +269,8 @@ class DataTransformer():
             else:
                 model.append(None)
                 self.components.append(None)
+                # print(f"On LINE 268")
+                # import pdb; pdb.set_trace()
                 self.output_info += [(info['size'], 'softmax')]
                 self.output_dim += info['size']
         self.model = model
