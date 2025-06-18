@@ -1,4 +1,4 @@
-# ASyH - Anonymous Synthesizer for Health Data (Release 1).
+# ASyH - Anonymous Synthesizer for Health Data (Release 2).
 
 ## Overview
 
@@ -12,7 +12,7 @@ For synthesis, metrics and quality assurance we will mainly use the [Synthetic D
 
 Using pip, the easiest way to install/upgrade ASyH is
 
-    pip install --upgrade https://github.com/dieterich-lab/ASyH/tarball/v1.0.2
+    pip install --upgrade https://github.com/dieterich-lab/ASyH/tarball/v1.0.3
 
 ## Usage
 
