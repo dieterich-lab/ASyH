@@ -375,7 +375,7 @@ class CTABGANSynthesizer:
 
         # TODO: replace datatransformer with default SDV method
         print("Initializing Data transformer for Forest Flow ...")
-        import ipdb; ipdb.set_trace() # remove later
+        # import ipdb; ipdb.set_trace() # remove later
         self.transformer = DataTransformer(train_data=train_data, categorical_list=categorical, 
                                            mixed_dict=mixed, general_list=general, non_categorical_list=non_categorical)
         self.transformer.fit()

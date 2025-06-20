@@ -223,7 +223,7 @@ class CPARPipeline(Pipeline):
         }
         print("PAR model is being initialized with the following arguments:")
         print(self.override_args)
-        import ipdb; ipdb.set_trace()
+        # import ipdb; ipdb.set_trace()
         super().__init__(model=CPARModel(data=input_data,
                                           override_args=self.override_args),
                           input_data=input_data)

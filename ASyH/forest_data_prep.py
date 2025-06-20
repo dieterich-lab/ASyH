@@ -3,6 +3,7 @@ import pandas as pd
 from sklearn import preprocessing
 from sklearn import model_selection
 
+
 class DataPrep(object):
   
     def __init__(self, raw_df: pd.DataFrame, categorical: list, log:list, mixed:dict, general:list, non_categorical:list, integer:list):

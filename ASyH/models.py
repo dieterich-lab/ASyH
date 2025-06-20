@@ -325,7 +325,7 @@ class ForestFlowModel(Model):
         data_ = self.transform_data_prep(data)
 
         if not self._trained:
-            import ipdb; ipdb.set_trace()
+            # import ipdb; ipdb.set_trace()
             self._train(data=data_)
         if sample_size == -1:
             sample_size = self._input_data_size
