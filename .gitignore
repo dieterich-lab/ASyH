@@ -1,3 +1,8 @@
 .idea
 build
 ASyH.egg-info
+.devcontainer/
+.test_age_str_parser.py.swp
+ASyH/__pycache__/
+app.log
+examples/
