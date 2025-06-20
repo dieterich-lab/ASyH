@@ -1,7 +1,6 @@
-# ASyH - Anonymous Synthesizer for Health Data (Release 2).
+# ASyH - Anonymous Synthesizer for Health Data (Version 1.1.0).
 
 ## Overview
-
 
 A data protection tool that utilizes generative machine learning models to create synthetic datasets, safeguarding sensitive patient information.
 The ASyH is a software helping Clinics as holders of large quantities of highly restricted personal health data to provide the Medical Data Community with realistic datasets without the breach of privacy.  It does this by synthesizing data with Machine Learning techniques which preserve data distribution and correlation while adding as much variation to the synthetic data, in order for it to have no resemblance to any of the original patient data entries.
@@ -12,7 +11,7 @@ For synthesis, metrics and quality assurance we will mainly use the [Synthetic D
 
 Using pip, the easiest way to install/upgrade ASyH is
 
-    pip install --upgrade https://github.com/dieterich-lab/ASyH/tarball/v1.0.3
+    pip install --upgrade https://github.com/dieterich-lab/ASyH/tarball/v1.1.0
 
 ## Usage
 
@@ -126,6 +125,18 @@ The `SPECIFIER_VALUE` for this specifier is a string in [strftime format](https:
 If you intend to produce longitudinal data, make sure that `sequence_key` is included in json file
 ```
 
+If you are going to use autoregressive models, make sure metadata json file includes the following entries:
+
+* `sequence_key` - a string label unique for a given time-series
+* `relationships` - a list of dictionaries representing relations between parent and child tables, supposed to be used with multi-sequence models
+* `column_relationships` - annotation of column groups based on higher level concepts, with that a new column category could be introduced, which might characterize several given columns. See the example below
+```
+{
+    "type": "diet",
+    "column_names": ["omnivore", "keto", "vegan", "vegetarian", "carnivore"]
+}
+```
+
 
 ## Pre-processing pipeline
 Primary function is to fill in the NaNs with adequate values depending on the
@@ -160,7 +171,25 @@ To run the tests set the PYTHONPATH and execute pytest on the 'tests' folder:
         export PYTHONPATH=$(pwd)
         pytest tests
 
+
 ## Release History
 | Release | Date |
 | ---: | ---: |
 |1.0.0| 25/05/2023|
+|1.1.0| 20/06/2025|
+
+
+## Changelog - version 1.1.0
+
+### Added
+
+- **Forest Flow model** - for synthesizing tables based on diffusion architecture
+- **Probabilistic Autoregressive model** - well suited for generating columns with time-series data
+- The capability to synthesize data with provided logical constraints
+- The support for longitudinal data generation (using PAR pipeline)
+- As the part of pre-processing pipeline - the ability to impute missing values in a source table
+
+### Changed
+
+- Extended the capabilities of command-line interface, added more flags for generation constraints, longitudinal entries, and pre-processing pipeline
+- Pre- and post-processing functional hooks
