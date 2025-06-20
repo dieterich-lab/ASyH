@@ -36,8 +36,9 @@ parser.add_argument("--input_name_root", dest="INPUT_NAME_ROOT", type=str)
 parser.add_argument("--input_format", dest="input_format", type=str)
 parser.add_argument("--metadata_file", dest="METADATA_FILE", type=str)
 parser.add_argument("--output_name_root", dest="OUTPUT_NAME_ROOT", type=str)
-parser.add_argument("--to-preprocess", dest="PREPROCESS", type=bool)
-parser.add_argument("--longitudinal", dest="LONGITUDE", type=bool)
+parser.add_argument("--to-preprocess", action='store_true', dest="PREPROCESS")
+parser.add_argument("--to-postprocess", action='store_true', dest="POSTPROCESS")
+parser.add_argument("--constraints", action="store_true", dest="CONSTRAINTS")
 
 
 def readData(input_file, ext, **kwargs) -> pd.DataFrame:
@@ -52,8 +53,6 @@ if __name__ == '__main__':
 
     # pdb.set_trace()
     # FILENAME_ROOT = 'Kaggle_Sirio_Libanes-16features'
-    print(f"Input file name root is {args.INPUT_NAME_ROOT}")
-    print(f"Input file format is {args.input_format}")
     INPUT_FILE = args.INPUT_NAME_ROOT + "." + args.input_format
     METADATA_FILE = args.METADATA_FILE
     # INPUT_FILENAME = INPUT_NAME_ROOT + '.xlsx'
@@ -64,8 +63,15 @@ if __name__ == '__main__':
     MODEL_FILENAME = OUTPUT_NAME + '.pkl'
     # pdb.set_trace()
 
-    asyh = ASyH.Application(preprocess=args.PREPROCESS, longitudinal=args.LONGITUDE)
-    logger.info("ASyH Application has been initialized")   # Logs to console and file
+    # specify here the logical constraints on data synthesis process
+    # the set of rules that the synthesized data must satisfy
+    constraints = {}
+
+    if args.CONSTRAINTS:
+        asyh = ASyH.Application(preprocess=args.PREPROCESS, 
+                                constraints=constraints)
+    else:
+        asyh = ASyH.Application(preprocess=args.PREPROCESS)
 
 
     # Reporting

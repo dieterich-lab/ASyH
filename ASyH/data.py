@@ -35,7 +35,16 @@ class Data:
 
     @property
     def sdv_metadata(self) -> SingleTableMetadata:
-        return SingleTableMetadata.load_from_dict(self._metadata.metadata)
+        try:
+            return SingleTableMetadata.load_from_dict(self._metadata.metadata)
+        except AttributeError:
+            if self._metadata is not None:
+                if hasattr(self._metadata, 'metadata'):
+                    return self._metadata.metadata
+                else:
+                    raise DataError("Metadata does not contain SDV metadata.")
+            else:
+                raise DataError("Metadata is not set or does not contain SDV metadata.")
 
     def __init__(self, data: Optional[DataFrame] = None, metadata: Optional[Metadata] = None):
         # should we not .copy() the dataframe?  atm we do not manipulate ._data.
@@ -50,9 +59,9 @@ class Data:
         x = re.compile(".*Excel.*")
         c = re.compile(".*CSV.*")
         if x.match(filetype):
-            data = pandas.read_excel(input_file)
+            data = pandas.read_excel(input_file, index_col=False)
         elif c.match(filetype):
-            data = pandas.read_csv(input_file)
+            data = pandas.read_csv(input_file, index_col=False)
         else:
             raise DataError("Cannot determine input file type: ")
         self._data = data

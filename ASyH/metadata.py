@@ -1,5 +1,4 @@
 # ASyH's simple metadata inference
-
 import pathlib
 import json
 from typing import Optional, Union, Dict, Any
@@ -23,8 +22,18 @@ class Metadata:
         if self.metadata is None:
             return {}
         return self.metadata['columns']
-
+    
     def read(self, filename: Union[str, pathlib.Path]):
+        '''Read the metadata from file into the metadata dict.'''
+        table = SingleTableMetadata()
+        if pathlib.Path(filename).is_file():
+            with open(filename, 'r', encoding='utf-8') as f:
+                dictionary = json.load(f)
+                self.metadata = table.load_from_dict(dictionary)
+        else:
+            raise FileNotFoundError
+
+    def read_as_dict(self, filename: Union[str, pathlib.Path]):
         '''Read the metadata from file into the metadata dict.'''
         if pathlib.Path(filename).is_file():
             with open(filename, 'r', encoding='utf-8') as f:
@@ -45,14 +54,32 @@ class Metadata:
         return [key  # the key, i.e. variable name
                 for key, typeinfo in columns.items()
                 if typeinfo['sdtype'] == type_string]
+    
+    def validate(self):
+        '''Validate the metadata.'''
+        if self.metadata is None:
+            raise ValueError("Metadata is not set.")
+        # if 'columns' not in self.metadata:
+        #     raise ValueError("Metadata does not contain 'columns' entry.")
 
     def __init__(self,
                  metadata: Optional[Dict[str, Any]] = None,
                  data: Optional[DataFrame] = None):
-        # If both metadata and data are specified, metadata is used.
-        the_metadata = metadata
+        '''Initialize the Metadata object.'''
         if metadata is None and data is not None:
-            dummy = SingleTableMetadata()
-            dummy.detect_from_dataframe(data)
-            the_metadata = dummy.to_dict()
-        self.metadata = the_metadata
+            print("=== Metadata is set from the data. ===\n",
+                  "This is a dummy metadata, please save it to a file ",
+                  "and edit it to your needs.")
+            # Create a dummy metadata from the data
+            metadata = SingleTableMetadata()
+            metadata.detect_from_dataframe(data)
+            # the_metadata = dummy.to_dict()
+            # the_metadata.column_relationships = None  # no column relationships for now
+            self.metadata = metadata
+        else:
+            print("Metadata is set from the argument.")
+            # self.metadata = metadata
+            # initialize empty SDV metadata
+            self.metadata = SingleTableMetadata()
+            # entering debug mode 
+            # import ipdb; ipdb.set_trace()

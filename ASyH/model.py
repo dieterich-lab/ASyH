@@ -60,6 +60,15 @@ class Model(ABC):
         self._model_type = sdv_model_class.__name__
         self._override_args = override_args
 
+        if override_args is not None and isinstance(override_args, Dict):
+            if 'constraints' in override_args.keys():
+                self._constraints = self._override_args['constraints']
+                del self._override_args['constraints']
+            else:
+                self._constraints = None
+        else:
+            self._constraints = None
+
         self._input_data_size = 0
         if data:
             self._training_data = data
@@ -75,6 +84,7 @@ class Model(ABC):
         assert self._training_data is not None or data is not None
         if data is None:
             data = self._training_data
+            
         if self._sdv_model is None:
             # create the SDV model just when we need it
             args = self.adapted_arguments(data)
@@ -82,9 +92,22 @@ class Model(ABC):
                 args.update(self._override_args)
             self._sdv_model = \
                 self._sdv_model_class(**args)
+
+        if hasattr(self._sdv_model, 'add_constraints'):
+            if self._constraints is not None:
+                self._sdv_model.add_constraints(self._constraints)
+
         self._sdv_model.fit(data.data)
         self._input_data_size = data.data.shape[0]
         self._trained = True
+    
+    
+    # fit method - basically the same as _train, but
+    # it is used by the SDV model class, so we need to keep it
+    def fit(self, data: Optional[Data] = None):
+        '''Fit the model to the data.'''
+        self._train(data)
+
 
     def save(self, filename: Optional[str] = None):
         '''Save the SDV model to pkl.'''
@@ -97,6 +120,7 @@ class Model(ABC):
             filename = filename + '.pkl'
         self._sdv_model.save(filename)
 
+
     def read(self, input_filename: str):
         '''Read the SDV model from pkl.'''
         # does filename exist?
@@ -106,10 +130,12 @@ class Model(ABC):
         if self._sdv_model:
             self._sdv_model.read(input_filename)
 
-    def synthesize(self, sample_size: int = -1) -> DataFrame:
+
+    def synthesize(self, sample_size: int = -1, 
+                   data=None) -> DataFrame:
         '''Create synthetic data.'''
         if not self._trained:
-            self._train(None)
+            self._train(data=data)
         if sample_size == -1:
             sample_size = self._input_data_size
         return self.sdv_model.sample(sample_size)
@@ -164,12 +190,18 @@ class ModelX(ABC):
             # create the SDV model just when we need it
             args = self.adapted_arguments(data)
             if self._override_args is not None:
-                args.update(self._override_args)
+                args.update(self._override_args)   
             self._ext_model = \
                 self._ext_model_class(**args)
         self._ext_model.fit(data.data)
         self._input_data_size = data.data.shape[0]
         self._trained = True
+    
+    # fit method - basically the same as _train, but
+    # it is used by the SDV model class, so we need to keep it
+    def fit(self, data: Optional[Data] = None):
+        '''Fit the model to the data.'''
+        self._train(data)
 
     def save(self, filename: Optional[str] = None):
         '''Save the ext model to pkl.'''
@@ -191,10 +223,10 @@ class ModelX(ABC):
         if self._ext_model:
             self._ext_model.read(input_filename)
 
-    def synthesize(self, sample_size: int = -1) -> DataFrame:
+    def synthesize(self, sample_size: int = -1, data=None) -> DataFrame:
         '''Create synthetic data.'''
         if not self._trained:
-            self._train(None)
+            self._train(data)
         if sample_size == -1:
             sample_size = self._input_data_size
         return self.ext_model.sample(sample_size)

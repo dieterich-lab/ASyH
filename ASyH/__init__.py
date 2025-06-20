@@ -4,9 +4,9 @@ from ASyH.App import Application
 from ASyH.data import Data, SyntheticData
 from ASyH.metadata import Metadata
 from ASyH.model import Model
-from ASyH.models import TVAEModel, CTGANModel, CopulaGANModel, GaussianCopulaModel
+from ASyH.models import TVAEModel, CTGANModel, CopulaGANModel, GaussianCopulaModel, ForestFlowModel
 from ASyH.pipeline import Pipeline
-from ASyH.pipelines import TVAEPipeline, CTGANPipeline, CopulaGANPipeline, GaussianCopulaPipeline
+from ASyH.pipelines import TVAEPipeline, CTGANPipeline, CopulaGANPipeline, GaussianCopulaPipeline, ForestFlowPipeline
 from ASyH.report import Report
 from ASyH.dispatch import concurrent_dispatch
 
@@ -26,5 +26,7 @@ __all__ = [
     'CopulaGANPipeline',
     'GaussianCopulaPipeline',
     'Report',
-    'concurrent_dispatch'
+    'concurrent_dispatch',
+    'ForestFlowModel',
+    'ForestFlowPipeline'
 ]

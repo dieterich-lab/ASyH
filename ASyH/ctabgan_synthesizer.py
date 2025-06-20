@@ -5,52 +5,52 @@ import torch.utils.data
 import torch.optim as optim
 from torch.optim import Adam
 from torch.nn import functional as F
-from torch.nn import (Dropout, LeakyReLU, Linear, Module, ReLU, Sequential,
+from torch.nn import (Dropout, LeakyReLU, Linear, Module, ReLU, Sequential, 
 Conv2d, ConvTranspose2d, Sigmoid, init, BCELoss, CrossEntropyLoss,SmoothL1Loss,LayerNorm)
 from ASyH.transformer_ctabgan import ImageTransformer,DataTransformer
 from tqdm import tqdm
-import pudb
+# import pudb
 
 
-class Classifier(Module):
-    def __init__(self,input_dim, dis_dims,st_ed):
-        super(Classifier,self).__init__()
-        dim = input_dim-(st_ed[1]-st_ed[0])
-        seq = []
-        self.str_end = st_ed
-        for item in list(dis_dims):
-            seq += [
-                Linear(dim, item),
-                LeakyReLU(0.2),
-                Dropout(0.5)
-            ]
-            dim = item
+# class Classifier(Module):
+#     def __init__(self,input_dim, dis_dims,st_ed):
+#         super(Classifier,self).__init__()
+#         dim = input_dim-(st_ed[1]-st_ed[0])
+#         seq = []
+#         self.str_end = st_ed
+#         for item in list(dis_dims):
+#             seq += [
+#                 Linear(dim, item),
+#                 LeakyReLU(0.2),
+#                 Dropout(0.5)
+#             ]
+#             dim = item
         
-        if (st_ed[1]-st_ed[0])==1:
-            seq += [Linear(dim, 1)]
+#         if (st_ed[1]-st_ed[0])==1:
+#             seq += [Linear(dim, 1)]
         
-        elif (st_ed[1]-st_ed[0])==2:
-            seq += [Linear(dim, 1),Sigmoid()]
-        else:
-            seq += [Linear(dim,(st_ed[1]-st_ed[0]))] 
+#         elif (st_ed[1]-st_ed[0])==2:
+#             seq += [Linear(dim, 1),Sigmoid()]
+#         else:
+#             seq += [Linear(dim,(st_ed[1]-st_ed[0]))] 
         
-        self.seq = Sequential(*seq)
+#         self.seq = Sequential(*seq)
 
-    def forward(self, input):
+#     def forward(self, input):
         
-        label=None
+#         label=None
         
-        if (self.str_end[1]-self.str_end[0])==1:
-            label = input[:, self.str_end[0]:self.str_end[1]]
-        else:
-            label = torch.argmax(input[:, self.str_end[0]:self.str_end[1]], axis=-1)
+#         if (self.str_end[1]-self.str_end[0])==1:
+#             label = input[:, self.str_end[0]:self.str_end[1]]
+#         else:
+#             label = torch.argmax(input[:, self.str_end[0]:self.str_end[1]], axis=-1)
         
-        new_imp = torch.cat((input[:,:self.str_end[0]],input[:,self.str_end[1]:]),1)
+#         new_imp = torch.cat((input[:,:self.str_end[0]],input[:,self.str_end[1]:]),1)
         
-        if ((self.str_end[1]-self.str_end[0])==2) | ((self.str_end[1]-self.str_end[0])==1):
-            return self.seq(new_imp).view(-1), label
-        else:
-            return self.seq(new_imp), label
+#         if ((self.str_end[1]-self.str_end[0])==2) | ((self.str_end[1]-self.str_end[0])==1):
+#             return self.seq(new_imp).view(-1), label
+#         else:
+#             return self.seq(new_imp), label
         
 
 def apply_activate(data, output_info):
@@ -66,7 +66,7 @@ def apply_activate(data, output_info):
             data_t.append(F.gumbel_softmax(data[:, st:ed], tau=0.2))
             st = ed
     output = torch.cat(data_t, dim=1)
-    import pdb; pdb.set_trace();
+    # import pdb; pdb.set_trace();
     return torch.cat(data_t, dim=1)
 
 def get_st_ed(target_col_index,output_info):
@@ -108,6 +108,7 @@ def maximum_interval(output_info):
         max_interval = max(max_interval, item[0])
     return max_interval
 
+
 class Cond(object):
     def __init__(self, data, output_info):
        
@@ -140,7 +141,7 @@ class Cond(object):
                 ed = st + item[0]
                 tmp = np.sum(data[:, st:ed], axis=0).astype(np.float32)
                 tmp_sampling = np.sum(data[:, st:ed], axis=0).astype(np.float32)
-                import pdb; pdb.set_trace()     
+                # import pdb; pdb.set_trace()     
                 tmp = np.log(tmp + 1)  
                 tmp = tmp / np.sum(tmp) 
                 tmp_sampling = tmp_sampling / np.sum(tmp_sampling)
@@ -206,6 +207,7 @@ def cond_loss(data, output_info, c, m):
 
     loss = torch.stack(loss, dim=1)
     return (loss * m).sum() / data.size()[0]
+
 
 class Sampler(object):
     def __init__(self, data, output_info):
@@ -355,7 +357,7 @@ class CTABGANSynthesizer:
                  num_channels=64,
                  l2scale=1e-5,
                  batch_size=500,
-                 epochs=150,
+                 epochs=1,
                  **kwargs):
 
         self.random_dim = random_dim
@@ -372,9 +374,15 @@ class CTABGANSynthesizer:
     def fit(self, train_data=pd.DataFrame, categorical=[], mixed={}, general=[], non_categorical=[]):
 
         # TODO: replace datatransformer with default SDV method
-        self.transformer = DataTransformer(train_data=train_data, categorical_list=categorical, mixed_dict=mixed, general_list=general, non_categorical_list=non_categorical)
-        self.transformer.fit() 
-        train_data = self.transformer.transform(train_data.values)
+        print("Initializing Data transformer for Forest Flow ...")
+        # import ipdb; ipdb.set_trace() # remove later
+        self.transformer = DataTransformer(train_data=train_data, categorical_list=categorical, 
+                                           mixed_dict=mixed, general_list=general, non_categorical_list=non_categorical)
+        self.transformer.fit()
+        # train_data = self.transformer.transform()
+        # breakpoint
+        import pdb; pdb.set_trace() # remove later
+        train_data = self.transformer.transform(train_data)
         # import pdb; pdb.set_trace();
         data_sampler = Sampler(train_data, self.transformer.output_info)
         data_dim = self.transformer.output_dim
@@ -405,7 +413,7 @@ class CTABGANSynthesizer:
         optimizerD = Adam(discriminator.parameters(), **optimizer_params)
 
         st_ed = None
-        classifier=None
+        # classifier=None
         optimizerC= None
         
         self.generator.apply(weights_init)
@@ -575,3 +583,11 @@ class CTABGANSynthesizer:
             result  = np.concatenate([result,res],axis=0)
         
         return result[0:n]
+    
+
+    def save(self, save_prefix="."):
+        torch.save(self.generator.state_dict(), save_prefix)
+        torch.save(self.discriminator.state_dict(), save_prefix + "_discriminator")
+        # self.cond_generator.save(path + "/cond_generator.pkl")
+        # self.classifier.save(path + "/classifier.pkl")
+        # self.classifier = None

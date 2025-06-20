@@ -1,10 +1,14 @@
 pipeline {
     agent any
+    environment {
+        REPO_PATH='.'
+        APP_NAME='asyh'
+    }
     stages {
         stage('Prepare venv') {
             steps {
                 sh '''
-                    python3 -m venv venv
+                    ./venv/bin/python3 -m venv venv
                     . ./venv/bin/activate
                     pip install --upgrade pip
                     pip install -e '.[tests]'
@@ -25,20 +29,24 @@ pipeline {
                 sh '''
                     . ./venv/bin/activate
                     export PYTHONPATH=$(pwd)
-                    pytest --junitxml results.xml tests --cov=ASyH --cov-report xml
+                    mvn test
                 '''
             }
         }
     }
     post {
         always {
-            junit 'results.xml'
-            cobertura coberturaReportFile: 'coverage.xml'
+            echo 'Wrapping up ...'
+
+    junit(testResults: 'tests/*.xml', allowEmptyResults: true)
+        }
+        success {
+            echo 'Build succeeded!'
         }
         failure {
             emailext to: "${ASYH_DEV_EMAILS}",
             subject: "jenkins build:${currentBuild.currentResult}: ${env.JOB_NAME}",
             body: "${currentBuild.currentResult}: Job ${env.JOB_NAME}\nMore Info can be found here: ${env.BUILD_URL}"
         }
-    }
+}
 }

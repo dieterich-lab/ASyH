@@ -1,16 +1,16 @@
 '''Hooks: simple execution hooks for common point of execution.'''
-
 from sdmetrics.errors import IncomputableMetricError
-
 from ASyH.data import Data
+import pdb
 
 
 class Hook:
-    '''A simple class for execution \'hooks\', i.e. a variable to collect
+    '''The base class for execution \'hooks\', i.e. a variable to collect
     functions which can be executed all in the order they were specified at a
     chosen point in the program.'''
 
-    _function_list = []
+    def __init__(self):
+        self._function_list = []
 
     def add(self, func):
         '''Add a function to the hook'''
@@ -34,8 +34,47 @@ class ScoringHook(Hook):
         ret = {}
         for func in self._function_list:
             try:
+                # pdb.set_trace()
                 res = func(real_data, synthetic_data)
                 ret[func.__name__] = res
+            except IncomputableMetricError:
+                pass
+        return ret
+
+
+class PreprocessHook(Hook):
+    '''Hook for preprocessing functions, i.e. with the fingerprint
+    (real_data, synthetic_data) => float,
+    where real_data and synthetic_data are objects of the ASyH.data.Data
+    class.  Only add such functions, otherwise exceptions will be thrown.'''
+
+    def execute(self, real_data: Data):
+        '''Execute all scorpre-processing functions in the hook,
+        return an imputed data frame'''
+        print("Executing functions in the preprocess hook ...")
+        ret = real_data
+        for func in self._function_list:
+            try:
+                ret = func(ret)
+            except IncomputableMetricError:
+                pass
+        print("Finished all functions in the preprocess hook")
+        return ret
+
+
+class PostprocessHook(Hook):
+    '''Hook for postprocessing functions, i.e. with the fingerprint
+    (real_data, synthetic_data) => float,
+    where real_data and synthetic_data are objects of the ASyH.data.Data
+    class.  Only add such functions, otherwise exceptions will be thrown.'''
+
+    def execute(self, synth_data: Data):
+        '''Execute all post-processing functions in the hook,
+        return an imputed data frame'''
+        ret = synth_data
+        for func in self._function_list:
+            try:
+                ret = func(ret)
             except IncomputableMetricError:
                 pass
         return ret
