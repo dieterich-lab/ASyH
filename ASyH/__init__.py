@@ -30,3 +30,11 @@ __all__ = [
     'ForestFlowModel',
     'ForestFlowPipeline'
 ]
+
+__model_names__ = [
+    'TVAEModel',
+    'CTGANModel',
+    'CopulaGANModel',
+    'GaussianCopulaModel',
+    'ForestFlowModel'
+]

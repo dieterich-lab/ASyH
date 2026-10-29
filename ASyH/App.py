@@ -114,14 +114,33 @@ class Application:
 
 
     def synthesize(self, input_file,
-                   metadata=None, metadata_file=None, sample_size=-1):
+                   metadata=None, metadata_file=None, 
+                   sample_size=-1, exclude_columns=[]):
         '''Synthesize data using the best-scoring model.'''
+        print("==== LAUNCHING THE SYNTHESIZER ====")
         if self._best is None:
             self.process(input_file,
                          metadata_file=metadata_file,
                          metadata=metadata)
         # prep_data = Utils.impute(self.input_data)
-        synth_data = self._best.synthesize(sample_size, data=self.input_data)
+        if len(exclude_columns) > 0:
+            df2 = self.input_data.data.copy()
+            meta2 = self.input_data.metadata.metadata.to_dict()
+
+            for col in exclude_columns:
+                if col in df2.columns:
+                    del df2[col]
+                if col in meta2.keys():
+                    del meta2[col]
+                elif 'columns' in meta2.keys():
+                    if col in meta2['columns'].keys():
+                        del meta2['columns'][col]
+
+            metadata2 = Metadata(metadata=meta2, data=df2)
+            input_data = Data(data=df2, metadata=metadata2)
+            synth_data = self._best.synthesize(sample_size, data=input_data)
+        else:
+            synth_data = self._best.synthesize(sample_size, data=self.input_data)
         return synth_data
 
 
@@ -148,7 +167,7 @@ class Application:
             Warning('No metadata file provided and no default file found.')
             # in this case, metadata is left None!
                                                  
-        input_data = Data()       
+        input_data = Data(metadata=metadata)       
         input_data.read(input_file)
 
         self.input_data = input_data

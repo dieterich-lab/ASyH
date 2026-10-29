@@ -67,7 +67,7 @@ class CTGAN2(sdv.single_table.CTGANSynthesizer):
 
 
     ## TODO: remake using the module secrets
-    def _set_random_state(self):
+    def _set_random_state(self, random_state2):
         # self._model.set_random
         curr_time = datetime.datetime.now()
         # random_state = int(curr_time.timestamp() * 1e+6)
@@ -76,7 +76,7 @@ class CTGAN2(sdv.single_table.CTGANSynthesizer):
         checksum = subprocess.check_output(['cksum', '/var/log/lastlog'])
         random_b = int("".join(re.findall(r'\d', str(checksum))))
         random_state = (random_a + random_b) % RAND_MAX
-        self._model.set_random_state(random_state)
+        self._model.set_random_state(random_state + random_state2)
         self._random_state_set = True
 
 
@@ -187,7 +187,7 @@ class GaussianCopulaModel(Model):
             sdmetrics_report = sdmetrics.reports.single_table.QualityReport()
             sdmetrics_report.generate(data.data,
                                       synth_data,
-                                      data.metadata.metadata,
+                                      data.metadata.metadata.to_dict(),
                                       verbose=False)
 
             # 'details' is a pandas dataframe:
