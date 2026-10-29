@@ -2,7 +2,6 @@
 """ASyH Pipeline base class"""
 import tempfile
 import os
-
 from ASyH.data import Data
 from ASyH.model import Model
 from ASyH.abstract_pipeline import AbstractPipeline

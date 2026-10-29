@@ -36,15 +36,15 @@ class DataTransformer():
                 column = self.train_data.iloc[:,index].name
                 # use the method from Utils - identify_column_type to identify the column type
                 col_type = Utils.identify_column_type(self.train_data, column)
-                match col_type:
-                    case 'categorical':
-                        self.categorical_columns.append(index)
-                    case 'numerical':
-                        self.non_categorical_columns.append(index)
-                    case 'unknown':
-                        # self.mixed_columns.append(index)
-                        # update the mixed_columns dictionary
-                        self.mixed_columns[index] = []
+
+                if col_type == 'categorical':
+                    self.categorical_columns.append(index)
+                elif col_type == 'numerical':
+                    self.non_categorical_columns.append(index)
+                elif col_type == 'unknown' or col_type is None:
+                    # self.mixed_columns.append(index)
+                    # update the mixed_columns dictionary
+                    self.mixed_columns[index] = []
 
         for index in range(self.train_data.shape[1]):
             ## REVIEW : added the checks for data type of dataframe columns

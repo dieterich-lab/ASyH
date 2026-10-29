@@ -1,0 +1,30 @@
+[build-system]
+requires = ['setuptools', 'wheel']
+
+[project]
+name = 'ASyH'
+version = '1.0.1'
+dependencies = [
+    'sdv == 1.9.0',
+    'openpyxl == 3.1.1',
+    'python-magic == 0.4.27',
+    'gower == 0.1.2',
+    'kaleido == 0.2.1',
+    'jinja2 == 3.1.2',
+]
+
+# prevent recursive directory structure - https://github.com/pypa/setuptools/issues/4076
+[tool.setuptools.packages.find]
+exclude = ['tests', 'build*']
+
+[project.optional-dependencies]
+tests = [
+    'flake8',
+    'pytest',
+    'pytest-cov',
+    'pytest-mock',
+    'pyfakefs',
+]
+
+[tool.setuptools.package-data]
+ASyH = ['report.j2']

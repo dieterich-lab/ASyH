@@ -19,9 +19,19 @@ class Metadata:
     @property
     def columns(self):
         'Property method for retrieving the \'columns\' entry in the metadata.'
-        if self.metadata is None:
+        if isinstance(self.metadata, Dict):
+            if 'columns' in self.metadata:
+                return self.metadata['columns']
+            else:
+                return {}
+        elif isinstance(self.metadata, SingleTableMetadata):
+            dict_meta = self.metadata.to_dict()
+            if 'columns' in dict_meta:
+                return dict_meta['columns']
+            else:
+                return {}
+        else:
             return {}
-        return self.metadata['columns']
     
     def read(self, filename: Union[str, pathlib.Path]):
         '''Read the metadata from file into the metadata dict.'''
@@ -76,10 +86,10 @@ class Metadata:
             # the_metadata = dummy.to_dict()
             # the_metadata.column_relationships = None  # no column relationships for now
             self.metadata = metadata
+        elif metadata is not None:
+            if isinstance(metadata, Dict):
+                print("Metadata is set from the argument.")
+                self.metadata = SingleTableMetadata.load_from_dict(metadata)
         else:
-            print("Metadata is set from the argument.")
-            # self.metadata = metadata
-            # initialize empty SDV metadata
-            self.metadata = SingleTableMetadata()
-            # entering debug mode 
-            # import ipdb; ipdb.set_trace()
+            print("Metadata is empty.")
+            self.metadata = None
